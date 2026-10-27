@@ -444,7 +444,7 @@ def _batch(readers, name, values, expected, issues, accepted):
 def _native_annotation_source(variant):
     key = _key(variant["key"])
     details = variant.get("details", {})
-    consequence = details.get("consequence", details.get("raw_annotation"))
+    consequence = None if details.get("gene_scope") else details.get("consequence", details.get("raw_annotation"))
     content = json.dumps(
         {
             "record_type": "native_variant_annotation",
@@ -454,6 +454,7 @@ def _native_annotation_source(variant):
             "hgvs_c": variant.get("hgvs_c"),
             "hgvs_p": variant.get("hgvs_p"),
             "consequence": consequence,
+            **({"gene_scope": details["gene_scope"]} if details.get("gene_scope") else {}),
         },
         ensure_ascii=False,
         sort_keys=True,

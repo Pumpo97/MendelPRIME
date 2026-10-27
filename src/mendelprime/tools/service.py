@@ -34,4 +34,6 @@ class MedicalTools:
             "genotype_tools",
             "genotype_tools_required",
         )
-        return acquire(patient, self._genotype, self.work_root)
+        result = acquire(patient, self._genotype, self.work_root)
+        result["evidence"]["tools"] = self.knowledge.scope_native_transcripts(result["evidence"]["tools"])
+        return result

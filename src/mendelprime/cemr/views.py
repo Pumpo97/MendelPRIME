@@ -290,6 +290,8 @@ def _variant_view(variant, tool, observations):
         "genotype_raw": variant.get("genotype_raw"),
     }
     details = variant["details"]
+    if details.get("gene_scope"):
+        view["gene_scope"] = details["gene_scope"]
     if tool["tool_id"] == "exomiser":
         for name in EXOMISER_VARIANT:
             view[name] = (

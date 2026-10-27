@@ -109,6 +109,12 @@ class KnowledgeBase:
         state = self._once("variants", variants.new_variant_store, self.resources["variant_knowledge"])
         return variants.lookup(state, gene, keys, reference)
 
+    def scope_native_transcripts(self, tools):
+        from . import variants
+
+        state = self._once("variants", variants.new_variant_store, self.resources["variant_knowledge"])
+        return variants.scope_native_transcripts(state, tools)
+
     def similar_cases(self, profile):
         resources = self.resources["resources"]
         index = self._once("cases", retrieval.load_index, resources["similar_case_root"])

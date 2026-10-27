@@ -447,6 +447,74 @@ def _associated(raw, gene):
     return any(value.strip().upper() == gene for value in re.split(r"[;,|]", raw))
 
 
+def scope_native_transcripts(state, tools):
+    """Keep regional candidates, but do not assign another gene's coding HGVS to them."""
+    info, failure = _clinvar_info(state)
+    if failure:
+        return tools
+    scoped, cache = [], {}
+    try:
+        with closing(_connect(state)) as connection:
+            connection.row_factory = sqlite3.Row
+            for tool in tools:
+                if tool["tool_id"] != "lirical":
+                    scoped.append(tool)
+                    continue
+                genes = []
+                for gene in tool["genes"]:
+                    aliases = {gene["gene"]}
+                    for record in gene.get("records", ()):
+                        mapping = record.get("gene_mapping_source")
+                        if mapping is not None and mapping.provider == "hgnc":
+                            row = json.loads(mapping.content)
+                            names = {
+                                value.strip() for field in ("symbol", "prev_symbol", "alias_symbol")
+                                for value in (row.get(field) or "").split("|") if value.strip()
+                            }
+                            if gene["gene"] in names:
+                                aliases.update(names)
+                    variants = []
+                    for variant in gene["variants"]:
+                        key = variant.get("key")
+                        transcript, hgvsc = variant.get("transcript"), variant.get("hgvs_c")
+                        owners = {}
+                        if key and transcript and hgvsc:
+                            if key not in cache:
+                                cache[key] = connection.execute(
+                                    "SELECT variation_id,allele_id,gene_symbol,name FROM variants WHERE assembly=? AND chromosome=? AND position=? AND reference=? AND alternate=?",
+                                    key,
+                                ).fetchall()
+                            pattern = rf"^{re.escape(transcript.split('.')[0])}(?:\.\d+)?\(([^()]+)\):{re.escape(hgvsc)}(?:\s|$)"
+                            for row in cache[key]:
+                                match = re.match(pattern, row["name"] or "")
+                                if match and _associated(row["gene_symbol"], match[1]):
+                                    owners.setdefault(match[1], []).append(dict(row))
+                        if len(owners) == 1 and not aliases.intersection(owners):
+                            owner = next(iter(owners))
+                            validate_gene(owner)
+                            scope = {
+                                "scope": "regional_context",
+                                "candidate_gene": gene["gene"],
+                                "transcript_gene": owner,
+                                "reported_identity": {
+                                    name: variant.get(name) for name in ("transcript", "hgvs_c", "hgvs_p")
+                                },
+                                "clinvar_records": owners[owner],
+                                "database_version": info["version"],
+                                "basis": "same_allele_transcript_accession_and_coding_hgvs",
+                            }
+                            variant = {
+                                **variant, "transcript": None, "hgvs_c": None, "hgvs_p": None,
+                                "details": {**variant["details"], "gene_scope": scope},
+                            }
+                        variants.append(variant)
+                    genes.append({**gene, "variants": tuple(variants)})
+                scoped.append({**tool, "genes": tuple(genes)})
+    except (sqlite3.Error, MendelPrimeError):
+        return tools
+    return tuple(scoped) if _fingerprint(state["clinvar_db"]) == info["fingerprint"] else tools
+
+
 def _read_matches(connection, gene, target, rows, version, resolved=None):
     output = []
     for row in rows:
@@ -463,7 +531,7 @@ def _read_matches(connection, gene, target, rows, version, resolved=None):
     return tuple(output)
 
 
-def _clinvar_matches(state, gene, target, reference):
+def _clinvar_matches(state, gene, target, reference, exclusions=None):
     if target[1] == "MT":
         if reference is None:
             return (), ("not_applicable", "mitochondrial_reference_unverified")
@@ -488,6 +556,18 @@ def _clinvar_matches(state, gene, target, reference):
                 target,
             ).fetchall()
             scoped = [row for row in rows if _associated(row["gene_symbol"], gene)]
+            if rows and not scoped:
+                for row in rows:
+                    symbols = tuple(value.strip() for value in re.split(r"[;,|]", row["gene_symbol"]))
+                    for symbol in symbols:
+                        validate_gene(symbol)
+                    if exclusions is not None:
+                        exclusions.append({
+                            "gene_symbols": symbols, "name": row["name"],
+                            "variation_id": str(row["variation_id"]), "allele_id": str(row["allele_id"]),
+                            "variant_key": target, "database_version": info["version"],
+                            "locator": f"https://www.ncbi.nlm.nih.gov/clinvar/variation/{row['variation_id']}/",
+                        })
             matches = _read_matches(connection, gene, target, scoped, info["version"])
     except sqlite3.Error:
         return (), ("query_failed", "clinvar_query_failed")
@@ -498,7 +578,7 @@ def _clinvar_matches(state, gene, target, reference):
     if matches:
         return matches, None
     failure = (
-        ("gene_scope_mismatch", "clinvar_gene_scope_mismatch") if rows and not scoped else ("not_found", "")
+        ("not_applicable", "clinvar_assertion_outside_gene") if rows and not scoped else ("not_found", "")
     )
     return _equivalent_matches(state, gene, target, reference, info, failure) if reference else ((), failure)
 
@@ -570,10 +650,8 @@ def _equivalent_matches(state, gene, target, reference, info, exact_failure):
         return (), ("schema_mismatch", "clinvar_resource_changed")
     if matches:
         return matches, None
-    return (), (
-        "gene_scope_mismatch",
-        "clinvar_gene_scope_mismatch",
-    ) if rows and not scoped else exact_failure
+    # Unrelated records in a normalization window are not gene-scope failures.
+    return (), exact_failure
 
 
 def _locator(value, fallback):
@@ -719,8 +797,12 @@ def lookup(state, gene, variants, reference=None):
     context, failure = _gene_context(state, gene)
     outcomes, evidence, seeds = [_outcome("clingen_gene_validity", gene, None, context, failure)], [], []
     for key in variants:
-        matches, failure = _clinvar_matches(state, gene, key, reference)
-        outcomes.append(_outcome("clinvar", gene, key, matches, failure))
+        exclusions = []
+        matches, failure = _clinvar_matches(state, gene, key, reference, exclusions)
+        outcome = _outcome("clinvar", gene, key, matches, failure)
+        if exclusions:
+            outcome["out_of_scope_records"] = tuple(exclusions)
+        outcomes.append(outcome)
         for match in matches:
             evidence.append(match["evidence"])
             seeds.extend(_seeds(match["evidence"], match["citation_sources"], "clinvar_citation"))
@@ -731,15 +813,11 @@ def lookup(state, gene, variants, reference=None):
             outcomes.append(_outcome("clingen_vcep", gene, key, joined, failure))
         else:
             status = failure[0] if failure else "not_found"
-            code = (
-                "no_exact_clinvar_join"
-                if status == "not_found"
-                else (
-                    "no_gene_scoped_clinvar_join"
-                    if status == "gene_scope_mismatch"
-                    else "clinvar_join_unavailable"
-                )
-            )
+            code = {
+                "not_found": "no_exact_clinvar_join",
+                "not_applicable": "no_applicable_clinvar_join",
+                "gene_scope_mismatch": "no_gene_scoped_clinvar_join",
+            }.get(status, "clinvar_join_unavailable")
             outcomes.append(_outcome("clingen_vcep", gene, key, (), (status, code)))
     unique = {(row["document"]["source"].source_id, row["variant_key"]): row for row in evidence}
     unique_seeds = {tuple(row.items()): row for row in seeds}
