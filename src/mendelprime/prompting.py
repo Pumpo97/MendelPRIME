@@ -79,6 +79,7 @@ def call_with_repair(
         **({"max_http_attempts": 1} if single_retry else {}),
     }
     for attempt in range(2):
+        binding_error = None
         if (
             max_input_characters is not None
             and len(request["system_prompt"]) + len(request["user_prompt"]) > max_input_characters
@@ -96,6 +97,8 @@ def call_with_repair(
             if attempt:
                 raise
             code = error.code if error.category in {"model", "response"} else "assessment_record_invalid"
+            if code == "report_passage_source_mismatch" and isinstance(error.source, dict):
+                binding_error = {"location": error.field, **error.source}
         except (KeyError, TypeError, ValueError) as error:
             if attempt:
                 raise MendelPrimeError("assessment_record_invalid", category="response") from error
@@ -104,6 +107,7 @@ def call_with_repair(
             **payload,
             "format_repair": {
                 "error": code,
+                **({"binding_error": binding_error} if binding_error else {}),
                 **({"draft": reply["content"]} if max_input_characters is None else {}),
                 "instruction": (
                     "Correct only the identified schema, source, or evidence violation. Return "

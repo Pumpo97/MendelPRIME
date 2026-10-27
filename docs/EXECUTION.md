@@ -73,6 +73,24 @@ failed cases or invalid input/configuration. The final stdout JSON lists each
 case's status and output path. A missing or failed resource is not negative
 biological evidence. Source/allele/quotation checks are not bypassed on a retry.
 
+Native regional candidates and transcript-specific annotations have different
+scopes. When the same allele, transcript accession and coding HGVS identify a
+different gene in ClinVar, the LIRICAL candidate and raw record are retained;
+the foreign coding annotation is separated into `gene_scope` provenance rather
+than assigned to that candidate. Other-gene ClinVar records remain in
+`out_of_scope_records` and cannot supply its assertions or VCEP joins. Ambiguous
+identities are not guessed. Database/query failures and invalid source bindings
+remain failures; successful installation alone does not verify those bindings.
+
+`report_passage_source_mismatch` means a selected passage was not offered under
+the cited source. The existing single repair receives the offending claim,
+citation and actual passage owners; gene/allele eligibility still has to pass.
+If that repair attempt also fails, report composition
+does not run, even when ranking and ACMG have completed. This is an evidence
+binding failure, not an installation failure. Preserve the failed result and
+audit; an independent `explain` run can reuse completed assessments without
+reranking, but must still satisfy the same citation checks.
+
 Use a new output root for a rerun. To preserve completed work, select only failed
 or unfinished cases in a new manifest; there is no automatic overwrite or
 checkpoint-resume flag. Report-only failures can use `explain` on existing

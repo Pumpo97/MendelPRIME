@@ -1271,7 +1271,7 @@ def _decode_claims(raw, context, memory, prepared, *, coverage=True):
             "report_claim_variant_alias_unbound",
         )
         citations = []
-        for item in _rows(row["citations"], "report_claim_citations_missing"):
+        for citation_number, item in enumerate(_rows(row["citations"], "report_claim_citations_missing"), 1):
             citation = _object(item, "report_claim_citation_invalid")
             _check(
                 set(citation) in ({"source_ref", "quote"}, {"source_ref", "passage_ref"}),
@@ -1291,7 +1291,20 @@ def _decode_claims(raw, context, memory, prepared, *, coverage=True):
                     ),
                     (),
                 )
-                _check(passage_ref in allowed, "report_passage_source_mismatch")
+                if passage_ref not in allowed:
+                    raise MendelPrimeError(
+                        "report_passage_source_mismatch", category="response",
+                        field=f"claims[{number}].citations[{citation_number}]",
+                        source={
+                            "claim": row,
+                            "invalid_citation": citation,
+                            "passage_owner_refs": [
+                                entry["source_ref"] for entry in packet.get("available_sources", ())
+                                if passage_ref in entry["passage_refs"]
+                            ],
+                            "instruction": "Choose a source/passage pair valid for this claim. Passage ownership does not establish gene or allele eligibility.",
+                        },
+                    )
                 offered = packet["passages"][passage_ref]
             else:
                 offered = _text(citation["quote"], "report_claim_quote_invalid")
