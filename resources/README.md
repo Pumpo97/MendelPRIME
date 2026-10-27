@@ -5,6 +5,11 @@ native-tool databases, or the VEP container. Place a prepared resource tree in a
 sibling directory named `MendelPRIME-release-resources`, or edit each profile's
 `resources.toml` to point to another installation.
 
+The [capability installer](../docs/INSTALL.md) instead defaults to WORK/resources
+and generates absolute resource roots. Use `--resources` to reuse another root.
+It imports only the selected Release assets; the table below lists the additional
+files that must still be obtained or prepared.
+
 Download the prepared archives and checksums from the
 [1.0.0 release](https://github.com/Pumpo97/MendelPRIME/releases/tag/1.0.0).
 Choose only the assets needed by your profile using the

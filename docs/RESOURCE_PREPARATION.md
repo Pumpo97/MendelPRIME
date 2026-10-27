@@ -146,7 +146,8 @@ query instruction or embedding dimensionality during deployment.
   These are ready-made native databases, not files to rebuild from the project
   HPO pack or ClinVar SQLite. The selected payloads are about 28.39 GB and 12.79 GB.
 - LIRICAL: install the supplied 2.4.1 ZIP or follow the tested [official-source
-  build](LIRICAL.md). Its data directory is separate. The upstream `download`
+  build](LIRICAL.md#optional-source-build). The default [installer](INSTALL.md)
+  uses the prepared Release ZIP. Its data directory is separate. The upstream `download`
   command obtains its HPO/HGNC/Orphanet/MedGen/transcript data, but a fresh download
   is not automatically the historical snapshot; record its versions/hashes.
 

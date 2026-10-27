@@ -3,6 +3,11 @@
 This guide follows the actual configuration loader, Runner, Medical Tools and
 assessment-resource readers. It describes the minimum profiles and their dependencies.
 
+The [installer](INSTALL.md) generates a private `run.toml`/`resources.toml` pair
+under WORK/configs/phenotype-rank, phenotype-report, vcf-rank or vcf-report.
+The `minimal/*.toml` paths below identify source templates, not the generated
+paths used by the README. Existing manual configurations remain supported.
+
 ## 1. Choose the branch and output
 
 | Input | Ranking profile | Report | Local resources |
@@ -69,7 +74,7 @@ for the documented choices.
 |---|---|---|
 | `resource_file` | Matching `.resources.toml` | One selected resource manifest |
 | `llm.base_url` | Replace the `.invalid` placeholder | Your provider's base URL, not the final `/chat/completions` URL |
-| `llm.model` | `gpt-6.1-sol` | All application LLM requests; endpoint must support it |
+| `llm.model` | `<MODEL_ID>` in source templates | Supply a real ID; the installer requires it and writes it explicitly |
 | `llm.wire_api` | `chat_completions` | Supported alternatives: `chat_completions`, `responses`; match provider |
 | `llm.transport_retries` | `1` | Transport retry setting, subject to stage-specific attempt budgets; not structural-output repair |
 | `llm.api_key_env` | Implicit `MENDELPRIME_API_KEY` | Name of the environment variable, never the key value |

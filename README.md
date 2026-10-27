@@ -64,117 +64,132 @@ profiles. LLM, literature and configured evidence services require network acces
 
 ## Quick start
 
-### Install
-
-Use **Linux x86-64 and Python 3.12**. Set `CODE` to the extracted source directory;
-keep private configuration, inputs and results outside it.
+Use **Linux x86-64 and Python 3.12**. The current repository includes the installer;
+the resource archives remain pinned to Release 1.0.0. Use a current checkout, not
+the original 1.0.0 source archive, for the installation commands below.
 
 ```bash
-export CODE=/absolute/path/to/MendelPRIME
+git clone https://github.com/Pumpo97/MendelPRIME.git
+cd MendelPRIME
+export CODE="$PWD"
 export WORK="$HOME/mendelprime-work"
-test ! -e "$WORK" || exit 1
-umask 077
-mkdir -p "$WORK"
-python3.12 -m venv "$WORK/.venv"
-source "$WORK/.venv/bin/activate"
-cd "$CODE"
-python -m pip install -c constraints/runtime.txt .
-python -m pip check
-```
-
-For VCF, replace the install command with `python -m pip install -c
-constraints/runtime.txt '.[vcf]'`. Native tools and data are separate. See
-[installation](docs/INSTALL.md) for Conda, compiler and native-library requirements.
-Keep the source directory when installing a wheel: it contains configurations,
-demos and preparation scripts that the wheel does not install.
-
-### Prepare resources and configuration
-
-The smallest HPO installation needs the **HPO resource package**, a complete
-local **OMIM mirror + mim2gene**, and the **Phen2Disease dataset**. The one-record
-OMIM example only illustrates its schema; it is not a replacement database.
-Follow the [resource setup table](#resources-and-configuration) before running.
-
-```bash
 export CFG="$WORK/configs"
 export INPUT="$CODE/examples"
 export OUT="$WORK/outputs"
 export RES="$WORK/resources"
-cp -R "$CODE/configs" "$CFG"
-mkdir -p "$OUT" "$RES" "$WORK/cache"
+read -r -p "LLM base URL: " MENDELPRIME_BASE_URL
+read -r -p "Model ID supported by that endpoint: " MENDELPRIME_MODEL
+export MENDELPRIME_BASE_URL MENDELPRIME_MODEL
 ```
 
-Edit the copied files, not the repository templates:
+### Choose what to install
 
-| Setting | Where to edit |
-|---|---|
-| Resource directory | `minimal/phenotype.resources.toml`: set `resource_root` to the actual absolute directory |
-| LLM endpoint and model | `minimal/phenotype.toml`: edit the existing `[llm]` section |
-| Phenotype-service consent | Set `[external].phen2gene_acknowledged` and `amelie_acknowledged` to `true` only after authorizing phenotype uploads |
-
-TOML paths do not expand `$RES` or `~`. For VCF, use the matching resource file
-and supply actual Java/JAR/data paths; report mode also requires VEP mounts.
-Existing compatible resources can be reused in place.
-
-```toml
-[llm]
-base_url = "https://your-provider.example/v1"
-model = "gpt-6.1-sol"
-wire_api = "chat_completions"
-api_key_env = "MENDELPRIME_API_KEY"
-transport_retries = 1
-```
-
-Import the key through the environment, never through public files:
+Run **one** of these commands. HPO and clinical input share one installation.
+The phenotype-upload flag authorizes the later inference calls to Phen2Gene and
+AMELIE; omit it if those uploads are not authorized, in which case their branches
+will remain unavailable. Installation itself sends no patient or LLM requests.
 
 ```bash
+# HPO or HPO + clinical description, with optional reports:
+python3.12 install.py --input-type hpo --work "$WORK" --download-resources --ack-phenotype-upload
+
+# HPO + VCF, ranking without reports:
+python3.12 install.py --input-type vcf --work "$WORK" --download-resources
+
+# HPO + VCF, ranking and reports:
+python3.12 install.py --input-type vcf --report --work "$WORK" --download-resources
+```
+
+The installer creates an isolated environment, installs the selected Python
+dependencies, verifies/extracts the selected Release assets, generates the TOML
+pair below and runs `doctor`. **It does not obtain every external database.**
+Missing native tools or data produce a nonzero exit with the missing checks;
+prepare those items using the [resource-to-parameter map](docs/INSTALL.md#resource-to-parameter-map),
+edit the generated resource TOML when paths differ, and rerun the same installer.
+Existing configurations and different resource files are never overwritten.
+
+| Selected capability | Generated run configuration | Resources added by reports |
+|---|---|---|
+| HPO / clinical | `$CFG/phenotype-rank/run.toml` | None; add `--explanation` when running |
+| VCF ranking | `$CFG/vcf-rank/run.toml` | Not applicable |
+| VCF with reports | `$CFG/vcf-report/run.toml` | VEP/cache/FASTA, MANE, full AI-CURA guidance and ClinGen SVI |
+
+Each run file has an adjacent `resources.toml`. The installer sets `resource_root`
+to the actual absolute resource directory. Add `--resources /existing/resources`
+to reuse an installation, or `--archives /downloads` instead of
+`--download-resources` to import already downloaded archives. Without either
+archive option, installed resources are reused in place. `--plan` shows the
+selected packages without changing files. See [installation options](docs/INSTALL.md)
+for offline wheels, Java, RareA and configuration-only use.
+
+**LIRICAL uses the prepared Release ZIP by default**, not a source build. The
+installer keeps its JAR and complete `lib/` together. Java 17, LIRICAL's data and
+the shared Exomiser databases must still be installed and configured. See
+[LIRICAL installation](docs/LIRICAL.md) and [native-tool resources](docs/INSTALL.md#resource-to-parameter-map).
+
+### Activate and supply the key
+
+After the selected resource checks pass:
+
+```bash
+source "$WORK/.venv/bin/activate"
 read -r -s -p "LLM API key: " MENDELPRIME_API_KEY
 export MENDELPRIME_API_KEY
 printf '\n'
 ```
 
-`.env` files are not loaded automatically. HTTPS verification is enabled by
-default; see [network configuration](docs/CONFIGURATION.md#5-network-tools-and-cold-start).
-
-### Run the HPO demo
-
-```bash
-python main.py doctor --config "$CFG/minimal/phenotype.toml" --profile hpo
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/hpo/case.json" --output-root "$OUT/hpo_case" --cache-root "$WORK/cache/hpo_case"
-```
-
-The minimal profiles already set **one case lane and four global LLM slots**.
-No extra concurrency flags are required. `doctor` checks setup, not model quality
-or API availability. A demo still needs its selected resources and a working API.
+The key is never written into the generated TOML. The endpoint and model ID are
+user-supplied; `.env` files are not loaded automatically. HTTPS verification stays
+enabled. The generated profiles use **one case lane, four global LLM slots,
+Reflection off and RareA off** unless RareA was explicitly selected.
 
 ## Run a Case or Cohort
 
 `run` is a subcommand of `main.py`, not a second script. A Case is one JSON/YAML
 record; a Cohort JSONL has one record per line. Each included Cohort contains the
 same single demo as its Case file; append your own unique cases for a real batch.
+Run from `$CODE`. Use a fresh output directory for every invocation.
 
-<details>
-<summary>HPO Cohort, clinical Case/Cohort, and VCF Case/Cohort commands</summary>
+### HPO
 
 ```bash
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/hpo/cohort.jsonl" --output-root "$OUT/hpo_cohort" --cache-root "$WORK/cache/hpo_cohort"
-
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/clinical/case.json" --output-root "$OUT/clinical_case" --cache-root "$WORK/cache/clinical_case"
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/clinical/cohort.jsonl" --output-root "$OUT/clinical_cohort" --cache-root "$WORK/cache/clinical_cohort"
-
-python main.py doctor --config "$CFG/minimal/vcf_rank.toml" --profile vcf --check-tools
-python main.py run --config "$CFG/minimal/vcf_rank.toml" --input "$INPUT/vcf/case.json" --output-root "$OUT/vcf_case" --cache-root "$WORK/cache/vcf_case"
-python main.py run --config "$CFG/minimal/vcf_rank.toml" --input "$INPUT/vcf/cohort.jsonl" --output-root "$OUT/vcf_cohort" --cache-root "$WORK/cache/vcf_cohort"
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/hpo/case.json" --output-root "$OUT/hpo_case" --cache-root "$WORK/cache/hpo_case"
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/hpo/cohort.jsonl" --output-root "$OUT/hpo_cohort" --cache-root "$WORK/cache/hpo_cohort"
 ```
 
-</details>
+Add `--explanation` to either command for a report, with a new output directory.
+No variant resources or additional tools are required.
 
-| Requested output | Profile and option |
-|---|---|
-| HPO / clinical ranking | `configs/minimal/phenotype.toml` |
-| HPO / clinical with report | Same profile; add `--explanation`, with no extra variant resources |
-| VCF ranking | `configs/minimal/vcf_rank.toml` |
-| VCF with report | `configs/minimal/vcf_report.toml`; install the additional report resources |
+### HPO plus clinical description
+
+```bash
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/clinical/case.json" --output-root "$OUT/clinical_case" --cache-root "$WORK/cache/clinical_case"
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/clinical/cohort.jsonl" --output-root "$OUT/clinical_cohort" --cache-root "$WORK/cache/clinical_cohort"
+```
+
+Use the same installation and resources as HPO. The input adds
+`clinical_description`; add `--explanation` for a report.
+
+### HPO plus VCF
+
+Ranking only, after the VCF ranking installation passes:
+
+```bash
+python main.py run --config "$CFG/vcf-rank/run.toml" --input "$INPUT/vcf/case.json" --output-root "$OUT/vcf_case" --cache-root "$WORK/cache/vcf_case"
+python main.py run --config "$CFG/vcf-rank/run.toml" --input "$INPUT/vcf/cohort.jsonl" --output-root "$OUT/vcf_cohort" --cache-root "$WORK/cache/vcf_cohort"
+```
+
+With reports, after the VCF report installation passes:
+
+```bash
+python main.py run --config "$CFG/vcf-report/run.toml" --input "$INPUT/vcf/case.json" --output-root "$OUT/vcf_case_report" --cache-root "$WORK/cache/vcf_case_report"
+python main.py run --config "$CFG/vcf-report/run.toml" --input "$INPUT/vcf/cohort.jsonl" --output-root "$OUT/vcf_cohort_report" --cache-root "$WORK/cache/vcf_cohort_report"
+```
+
+Do not simply add `--explanation` to an unprepared VCF ranking configuration:
+report resources must also be present. Trio versus proband-only is specified in
+the input's `genomic.family_mode` and sample roles, not by installing different
+databases. The included VCF demo is proband-only.
 
 [Complete demo commands](examples/README.md#commands) cover all Case/Cohort and
 report combinations. Use a new output directory for each run. VCF paths resolve
@@ -195,7 +210,7 @@ provenance. `traceable_explanation.md` is empty when reports are off. Reports ca
 also be generated later from saved results without reranking:
 
 ```bash
-python main.py explain --config "$CFG/minimal/vcf_report.toml" --input "$OUT/vcf_case" --output-root "$OUT/vcf_explained" --cache-root "$WORK/cache/vcf_explained"
+python main.py explain --config "$CFG/vcf-report/run.toml" --input "$OUT/vcf_case" --output-root "$OUT/vcf_explained" --cache-root "$WORK/cache/vcf_explained"
 python main.py evaluate --input "$OUT/vcf_case" --truth "$INPUT/truth.csv"
 ```
 
@@ -229,6 +244,7 @@ is explicitly enabled. It still needs gnomAD, SpliceAI, REVEL and AutoPVS1;
 Exomiser summary annotations do not replace these resources.
 
 - [Prepared archives and extraction](docs/RESOURCE_ASSETS.md): HPO, ClinVar, guidance, RareA, retrieval support and LIRICAL.
+- [Resource-to-parameter map](docs/INSTALL.md#resource-to-parameter-map): what the installer supplies, what to obtain separately, and the exact TOML fields.
 - [Acquisition and version requirements](docs/RESOURCE_PREPARATION.md) and [preprocessing commands](preparation/README.md): references, predictors, ClinGen and AutoPVS1.
 - [OMIM mirror schema](docs/OMIM_MIRROR.md): normalized local JSONL; no OMIM API key is used.
 - [LIRICAL installation/build](docs/LIRICAL.md) and [VEP installation/mounts](docs/VEP_RUNTIME.md): full programs, not isolated JARs or executables.

@@ -53,7 +53,7 @@ absolute names inside and outside this example container.
 
 ```bash
 mkdir -p /absolute/work/doctor
-python main.py doctor --config /absolute/work/configs/minimal/vcf_report.toml --profile vcf --check-tools --explanation --work-root /absolute/work/doctor
+python main.py doctor --config "$CFG/vcf-report/run.toml" --profile vcf --check-tools --explanation --work-root /absolute/work/doctor
 ```
 
 Doctor launches the actual command and checks its version. A subsequent real

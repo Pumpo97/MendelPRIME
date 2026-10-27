@@ -24,34 +24,35 @@ For your own trio, follow the [sample-role schema](../docs/INPUTS.md#vcf-inputs)
 
 ## Commands
 
+The commands use installer-generated configurations, not unedited source templates.
 Use one command for the desired mode. Every output/cache name below is distinct.
 
 ### HPO
 
 ```bash
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/hpo/case.json" --output-root "$OUT/hpo_case" --cache-root "$WORK/cache/hpo_case"
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/hpo/cohort.jsonl" --output-root "$OUT/hpo_cohort" --cache-root "$WORK/cache/hpo_cohort"
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/hpo/case.json" --output-root "$OUT/hpo_case" --cache-root "$WORK/cache/hpo_case"
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/hpo/cohort.jsonl" --output-root "$OUT/hpo_cohort" --cache-root "$WORK/cache/hpo_cohort"
 ```
 
 With reports, reuse the same resources:
 
 ```bash
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/hpo/case.json" --output-root "$OUT/hpo_case_report" --cache-root "$WORK/cache/hpo_case_report" --explanation
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/hpo/cohort.jsonl" --output-root "$OUT/hpo_cohort_report" --cache-root "$WORK/cache/hpo_cohort_report" --explanation
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/hpo/case.json" --output-root "$OUT/hpo_case_report" --cache-root "$WORK/cache/hpo_case_report" --explanation
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/hpo/cohort.jsonl" --output-root "$OUT/hpo_cohort_report" --cache-root "$WORK/cache/hpo_cohort_report" --explanation
 ```
 
 ### HPO plus clinical description
 
 ```bash
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/clinical/case.json" --output-root "$OUT/clinical_case" --cache-root "$WORK/cache/clinical_case"
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/clinical/cohort.jsonl" --output-root "$OUT/clinical_cohort" --cache-root "$WORK/cache/clinical_cohort"
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/clinical/case.json" --output-root "$OUT/clinical_case" --cache-root "$WORK/cache/clinical_case"
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/clinical/cohort.jsonl" --output-root "$OUT/clinical_cohort" --cache-root "$WORK/cache/clinical_cohort"
 ```
 
 With reports:
 
 ```bash
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/clinical/case.json" --output-root "$OUT/clinical_case_report" --cache-root "$WORK/cache/clinical_case_report" --explanation
-python main.py run --config "$CFG/minimal/phenotype.toml" --input "$INPUT/clinical/cohort.jsonl" --output-root "$OUT/clinical_cohort_report" --cache-root "$WORK/cache/clinical_cohort_report" --explanation
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/clinical/case.json" --output-root "$OUT/clinical_case_report" --cache-root "$WORK/cache/clinical_case_report" --explanation
+python main.py run --config "$CFG/phenotype-rank/run.toml" --input "$INPUT/clinical/cohort.jsonl" --output-root "$OUT/clinical_cohort_report" --cache-root "$WORK/cache/clinical_cohort_report" --explanation
 ```
 
 ### HPO plus VCF
@@ -60,17 +61,17 @@ Install the VCF dependencies, native tools and ranking resources first. Ranking
 uses the smaller resource profile and does not need VEP or report-only guidance:
 
 ```bash
-python main.py doctor --config "$CFG/minimal/vcf_rank.toml" --profile vcf --check-tools
-python main.py run --config "$CFG/minimal/vcf_rank.toml" --input "$INPUT/vcf/case.json" --output-root "$OUT/vcf_case" --cache-root "$WORK/cache/vcf_case"
-python main.py run --config "$CFG/minimal/vcf_rank.toml" --input "$INPUT/vcf/cohort.jsonl" --output-root "$OUT/vcf_cohort" --cache-root "$WORK/cache/vcf_cohort"
+python main.py doctor --config "$CFG/vcf-rank/run.toml" --profile vcf --check-tools
+python main.py run --config "$CFG/vcf-rank/run.toml" --input "$INPUT/vcf/case.json" --output-root "$OUT/vcf_case" --cache-root "$WORK/cache/vcf_case"
+python main.py run --config "$CFG/vcf-rank/run.toml" --input "$INPUT/vcf/cohort.jsonl" --output-root "$OUT/vcf_cohort" --cache-root "$WORK/cache/vcf_cohort"
 ```
 
 For reports, install the additional report resources and configure their paths:
 
 ```bash
-python main.py doctor --config "$CFG/minimal/vcf_report.toml" --profile vcf --check-tools
-python main.py run --config "$CFG/minimal/vcf_report.toml" --input "$INPUT/vcf/case.json" --output-root "$OUT/vcf_case_report" --cache-root "$WORK/cache/vcf_case_report"
-python main.py run --config "$CFG/minimal/vcf_report.toml" --input "$INPUT/vcf/cohort.jsonl" --output-root "$OUT/vcf_cohort_report" --cache-root "$WORK/cache/vcf_cohort_report"
+python main.py doctor --config "$CFG/vcf-report/run.toml" --profile vcf --check-tools
+python main.py run --config "$CFG/vcf-report/run.toml" --input "$INPUT/vcf/case.json" --output-root "$OUT/vcf_case_report" --cache-root "$WORK/cache/vcf_case_report"
+python main.py run --config "$CFG/vcf-report/run.toml" --input "$INPUT/vcf/cohort.jsonl" --output-root "$OUT/vcf_cohort_report" --cache-root "$WORK/cache/vcf_cohort_report"
 ```
 
 The profiles set one case lane and four total LLM slots, with Reflection and

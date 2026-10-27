@@ -1,132 +1,161 @@
 # Installing MendelPRIME
 
-MendelPRIME uses the distribution name `mendelprime` and exposes one console command,
-`mendelprime`. Use a fresh virtual environment: another distribution that owns the same
-`mendelprime` import package or console command must not be installed beside it.
+Use the current source checkout, Linux x86-64 and Python 3.12. Installation is
+separate from inference: `install.py` never submits a patient or calls an LLM.
+The resource archives remain pinned to Release 1.0.0; its original source
+archive predates the installer. Clone the current branch for these commands.
 
-## Supported platform
+## Prerequisites
 
-Use Python 3.12 on Linux x86-64. Package metadata limits Python to `>=3.12,<3.13`.
-Other platforms require compatible Python packages, native executables and libraries.
+- Python 3.12 with venv/pip. With an existing Conda/Miniforge installation, run
+  `conda create -n mendelprime-bootstrap -c conda-forge python=3.12 pip`, then
+  `conda activate mendelprime-bootstrap` before using the installer.
+- VCF requires Java 17: a JRE for prepared programs, a JDK only for source builds.
+  Pass `--java` with the executable, or put a complete Java installation on PATH.
+- VCF also needs libpq for the psycopg2 dependency of HGVS. A source build needs
+  a C compiler, Python/PostgreSQL development headers and pg_config on PATH.
+  Alternatively add libpq to the user-owned Conda environment and keep its bin
+  on PATH during installation. Python extras do not install OS shared libraries.
+- No root access or replacement of system Java is required.
 
-## Install a capability group
+## Capability selection
 
-From the unpacked source release, select the smallest group needed:
+Set WORK, MENDELPRIME_BASE_URL and MENDELPRIME_MODEL as in the
+[README](../README.md#quick-start). Use an actual model ID supported by your
+endpoint; examples intentionally do not select a specific model.
 
-```bash
-python3.12 -m venv .venv
-. .venv/bin/activate
+| Installer selection | Python group | Configuration under WORK/configs |
+|---|---|---|
+| `--input-type hpo` or `clinical` | Base | `phenotype-rank/run.toml` and `resources.toml` |
+| Either above plus `--report` | Same base | `phenotype-report/run.toml` and `resources.toml` |
+| `--input-type vcf` | VCF | `vcf-rank/run.toml` and `resources.toml` |
+| `--input-type vcf --report` | Same VCF | `vcf-report/run.toml` and `resources.toml` |
+| HPO/clinical plus `--with-rarea` | Retrieval | Same directory name with `-rarea` appended |
 
-python -m pip install -c constraints/runtime.txt .
-python -m pip install -c constraints/runtime.txt ".[hpo]"
-python -m pip install -c constraints/runtime.txt ".[vcf]"
-python -m pip install -c constraints/runtime.txt ".[full]"
-```
-
-Run only one of the four installation commands. The base installation (`.`) supports
-complete HPO/clinical ranking and reports with RareA disabled, as well as
-configuration, result evaluation and CLI discovery. Its direct Python dependency
-is PyYAML 6.0.3. `hpo` adds RareA retrieval. `vcf` adds VCF parsing,
-HGVS normalization, AutoPVS1 support, and HTML evidence parsing. `full` contains both application
-paths.
-
-The corresponding dependency-only files are `requirements/base.txt`, `requirements/hpo.txt`,
-`requirements/vcf.txt`, and `requirements/full.txt`. They use `constraints/runtime.txt`, which records
-the pinned dependency versions for Python 3.12 on Linux.
-
-When `[ranking].similar_cases = false`, the base dependencies suffice for HPO and
-clinical input; install `.[vcf]` to add VCF without installing GPU/model packages.
-Do not confuse this switch with `device = "cpu"`: CPU alone still runs the
-configured similarity models when the branch is enabled.
-
-Keep the source archive (or its separate `configs/`, `constraints/`, `examples/`
-and `docs/` deployment files) when installing a wheel. The wheel contains the
-runtime and Prompts, not those deployment templates or any external resources.
-No configuration is discovered from an old editable install or a Conda environment.
-
-## PyTorch builds
-
-The package pins the PyTorch API version but does not choose a CPU or accelerator wheel source.
-Select the appropriate official PyTorch wheel for the deployment platform before installing the HPO
-or full group, then install MendelPRIME with the runtime constraints. Match the
-PyTorch build to the installed accelerator driver; the package requires PyTorch 2.9.1.
-
-## Native and external dependencies
-
-VCF analysis additionally requires externally managed scientific tools and datasets. These are not
-embedded in the wheel:
-
-- Java 17 for the complete Exomiser 14.0.0 and LIRICAL 2.4.1 distributions,
-  including each launcher's adjacent `lib/` dependencies.
-- VEP 104.3 with its cache and reference FASTA when VCF reports or ranking VEP are
-  enabled. It is unnecessary for minimal VCF ranking-only or non-VCF input.
-- A complete AutoPVS1 source and data tree. Its Python imports are covered by the `vcf` extra.
-- PLINK2 only when optional kinship QC is enabled.
-- The PostgreSQL client library (`libpq`) used by the `psycopg2` dependency of
-  `hgvs`. If no suitable binary wheel is available, building `psycopg2` also needs
-  a C compiler, Python development headers and PostgreSQL development headers/
-  `pg_config`. A Python virtual environment isolates Python packages, not native
-  shared libraries; record and verify those libraries on the deployment host.
-
-For a user-owned Conda environment, installing `python=3.12 libpq pip` and
-activating it puts `pg_config` on PATH. When invoking the Python executable by
-absolute path without activation, prepend the environment's `bin` to PATH for
-the pip build. Setting `PG_CONFIG` alone is not sufficient for psycopg2's build
-discovery. Keep the generated environment outside the source tree.
-
-If Python 3.12 is absent, use an existing Conda/Miniforge installation, or first
-install Miniforge into a user-owned directory using the upstream installer and
-verify its published checksum. Then use this alternative to the README's venv
-block; do not stack the two environment recipes:
+HPO and clinical share resources. Case/Cohort and trio/proband-only do not
+require different installations. Mixed VCF/non-VCF cohorts need a manually
+configured union; the installer selects one resource family.
 
 ```bash
-export CODE=/absolute/path/to/github
-export WORK="$HOME/mendelprime-work"
-test ! -e "$WORK"
-umask 077
-mkdir -p "$WORK"
-conda create -y -n mendelprime -c conda-forge python=3.12 libpq pip
-conda activate mendelprime
-cd "$CODE"
-python -m pip install -c constraints/runtime.txt '.[vcf]'
-python -m pip check
+# Read-only plan; no endpoint, key or installed databases needed:
+python3.12 install.py --input-type vcf --report --work "$WORK" --plan
+
+# Install with already downloaded Release archives:
+python3.12 install.py --input-type vcf --work "$WORK" --archives /absolute/downloads --java /absolute/jdk17/bin/java
+
+# Reuse installed resources without downloading or extracting archives:
+python3.12 install.py --input-type vcf --work "$WORK" --resources /absolute/resources
+
+# Generate the TOML pair only; no environment installation or doctor:
+python3.12 install.py --input-type hpo --work "$WORK" --configure-only
 ```
 
-This example installs all three input types without retrieval models; set
-`similar_cases = false` in both phenotype run profiles. For enabled retrieval,
-select the appropriate PyTorch build and install `.[full]` instead. A C compiler
-and headers may still be required when a dependency must build from source.
-Use an unused Conda environment name if `mendelprime` already exists. Continue
-with the private WORK/config/input setup from the README after activation;
-there is no need to create its `.venv` directory in this alternative.
+`--download-resources` downloads only the selected prepared archives, verifies
+their SHA256 against resources/ASSETS.json, and extracts them. `--archives`
+imports the same files locally. With both, missing archives are downloaded there.
+With neither, resources must already be installed. VCF uses the Release LIRICAL
+ZIP by default, not a source build.
 
-`pysam` provides the VCF, BGZF, and tabix APIs used by MendelPRIME; host `samtools`, `bcftools`,
-`bgzip`, and `tabix` commands are not Python-package prerequisites.
+The installer creates/reuses WORK/.venv, installs the selected Python group with
+the existing constraints from a temporary build copy, then runs pip check and
+doctor with native-tool checks. Build artifacts stay outside the source checkout.
+Missing tools, libraries or data produce a nonzero exit; installing Python
+packages alone is not a successful full deployment. Missing resources are not
+silently disabled.
 
-For LIRICAL, a JRE is enough to execute a built distribution; building the pinned
-official source requires a JDK with `javac`, Git and network access to Maven
-repositories. The [build instructions](LIRICAL.md) use the upstream Maven Wrapper
-and keep all generated files outside MendelPRIME. Install the [ClinVar and
-RareA assets](RESOURCE_ASSETS.md) separately. OMIM still uses local files.
+## Configuration and repeated installation
 
-## Reproducible build
+Paths are relative to resource_root unless absolute. TOML does not expand shell
+variables. The installer writes an absolute root and discovers Java on PATH when
+available. Scientific defaults, Prompts and tool analysis policies are unchanged.
 
-Build in a clean Python 3.12 environment using the pinned backend and frontend versions:
+| User setting | Generated setting |
+|---|---|
+| `--base-url` / `MENDELPRIME_BASE_URL` | run.toml: `llm.base_url` |
+| `--model` / `MENDELPRIME_MODEL` | run.toml: `llm.model` |
+| `--wire-api` | `llm.wire_api`: chat_completions by default, or responses |
+| `--resources` | resources.toml: top-level `resource_root` |
+| `--java` | resources.toml: `genotype.java` |
+| `--report` | run.toml: `output.explanation`; selects VCF report resources |
+| `--with-rarea` | `ranking.similar_cases`; adds three retrieval paths |
+| `--ack-phenotype-upload` | `external.phen2gene_acknowledged` and `amelie_acknowledged`; use only with authorization |
+| API key | Runtime environment `MENDELPRIME_API_KEY`; never saved by the installer |
+| Concurrency | run.toml: `execution.lanes`, `max_llm_concurrency`, `workers`; defaults are 1 lane / 4 global slots |
+
+Existing configuration pairs are reused, never overwritten. Edit them directly;
+conflicting explicit installer arguments fail instead of being ignored. Ranking
+and report profiles have separate directories. Identical resource files are
+retained; different existing files cause an error. Run one installer at a time.
+Keep WORK, archives and installed resources outside CODE.
+Archive imports use temporary extraction space and verify existing payloads;
+allow space for both the archive and expanded data. They do not delete an older
+installation or replace a different database snapshot.
+
+For HPO/clinical, adding `--explanation` at runtime with the rank profile is also
+sufficient once resources are ready. VCF needs the report resource profile, not
+just a runtime flag.
+
+## Resource-to-parameter map
+
+The last column names fields in the generated resources.toml. Exact versions,
+companion indexes and all 46 fields remain in the [register](RESOURCE_REGISTER.md).
+
+| Needed by | Resource and acquisition | Preparation/install route | TOML fields |
+|---|---|---|---|
+| All | HPO Release package | Installer extracts unchanged | `resources.hpo_obo`, `hpo_stats`; phenotype also `genes_to_phenotype` |
+| All | Authorized complete OMIM mirror + matching mapping | [Schema](OMIM_MIRROR.md), [OMIM preparation](../preparation/README.md#omim-and-genereviews) | `resources.omim_jsonl`, `mim2gene` |
+| HPO/clinical | Phen2Disease upstream dataset and similarity matrix | [Four-file layout](RESOURCE_PREPARATION.md#p01-phen2disease-upstream-precomputed-data-not-another-inference-run); no upstream ranking run | `resources.phen2disease_root` |
+| VCF | Java 17 and complete Exomiser 14.0.0 distribution | [Native installation](RESOURCE_PREPARATION.md#p04-java-exomiser-and-lirical-install-full-programs-and-separate-data); retain lib and relocate properties | `genotype.java`, `exomiser_jar`, `exomiser_properties` |
+| VCF | LIRICAL 2.4.1 Release ZIP | Installer preserves JAR + lib; [manual route](LIRICAL.md) | `genotype.lirical_jar`, `lirical_version` |
+| VCF | Exomiser 2406 genome/phenotype archives; LIRICAL data/HGNC | [Data acquisition](LIRICAL.md#install-the-data-separately); genome .mv.db files are shared | `genotype.assemblies[0].exomiser_genome_data`, `exomiser_phenotype_data`, `lirical_exomiser_data`, `lirical_variants_db`, `lirical_clinvar_db`; `genotype.lirical_data`, `gene_map` |
+| VCF | Both ClinVar SQLite databases in Release | Installer extracts; [raw conversion](../preparation/README.md#clinvar-databases) only for separately acquired snapshots | `variant_knowledge.clinvar_db`; `explanation_resources.clinvar_protein_disease_db`, `clinvar_protein_release` |
+| VCF | ClinGen validity and VCEP exports | [Acquire and bind exports](../preparation/README.md#clingen-tables-and-guidance) | `variant_knowledge.clingen_validity`, `clingen_vcep`, `clingen_manifest` |
+| VCF | Verified GRCh37 reference | [FASTA/index preparation](../preparation/README.md#fasta-references) | `explanation_resources.reference_fasta` plus adjacent .fai |
+| VCF | gnomAD sites/coverage/constraint, SpliceAI SNV/indel, REVEL | [Acquisition and BGZF/tabix preparation](../preparation/README.md#revel-and-populationprediction-indexes) | `explanation_resources.gnomad_sites`, `gnomad_coverage`, `gnomad_constraint`, `spliceai_snv`, `spliceai_indel`, `revel` and their release fields |
+| VCF | AutoPVS1 pinned source/data and reference | [Compatibility installation](../preparation/README.md#autopvs1-compatibility-installation) | `explanation_resources.autopvs1_root` |
+| VCF | AI-CURA ranking knowledge + manifest in Release | Installer extracts; original workbook not needed for ranking | `explanation_resources.ai_cura_knowledgebase`, `ai_cura_manifest` |
+| VCF reports only | VEP 104.3/cache 104/FASTA; MANE | [VEP](VEP_RUNTIME.md), [MANE](RESOURCE_PREPARATION.md#p11-mane-and-autopvs1) | `explanation_resources.vep_command`, `vep_cache`, `vep_fasta`, `vep_cache_version`, `vep_tool_version`, `mane_summary`, `mane_release` |
+| VCF reports only | AI-CURA workbook/protocol; ClinGen SVI originals/text | [AI-CURA capsule](../preparation/README.md#ai-cura-capsule), [SVI](../preparation/README.md#clingen-tables-and-guidance) | `explanation_resources.ai_cura_protocol`, `ai_cura_workbook`, `clingen_guideline_manifest` |
+| Optional HPO/clinical retrieval | RareA and retrieval-support packages; matching Qwen weights | Installer extracts packages; [complete query model](RESOURCE_ASSETS.md#complete-the-query-model) separately | `resources.similar_case_root`, `embedding_model`, `cross_encoder` |
+| Optional VCF report enrichment | GeneReviews, dosage, reviewed literature, PLINK2 | [Scoped resources](RESOURCE_PREPARATION.md#p13-optional-report-enrichment-and-kinship-qc) | `explanation_resources.genereviews_index`, `clingen_dosage_table`, `post_evidence_catalog`, `kinship_executable` |
+
+**VCF ranking still requires pre-ranking molecular evidence/ACMG.** Not all
+explanation_resources fields are report-only; use the table and selected profile.
+HPO reports require no variant databases. The one-record OMIM demo is not a
+substitute for a complete database.
+
+## Offline packages and optional retrieval
+
+First obtain a complete Python 3.12 / Linux wheelhouse including build
+dependencies, and the selected Release archives:
 
 ```bash
-python -m pip install -c constraints/build.txt build setuptools wheel
-python -m build --no-isolation
+python3.12 install.py --input-type vcf --work "$WORK" --offline --wheelhouse /absolute/wheels --archives /absolute/downloads
 ```
 
-The wheel must contain the `mendelprime` package, all ranking and explanation Prompt assets, and the
-single `mendelprime = mendelprime.runtime.cli:main` entry point. Configuration, credentials, model
-weights, patient data, databases, native tools, and scientific resources are deployment inputs and
-must not be included in the distribution.
+This disables pip indexes and installer downloads, not network use during
+inference. The application still needs LLM and evidence services. Doctor checks
+local resources/startup, not service availability or model quality.
 
-After installation, verify dependency consistency and CLI discovery without making model calls:
+For containerized VEP, mount the selected WORK and resource directories at their
+configured paths. The installer puts doctor work under WORK/cache/doctor; it
+does not assume that an arbitrary host temporary directory is visible inside VEP.
 
-```bash
-python -m pip check
-mendelprime --help
-python main.py doctor --config "$CFG/minimal/vcf_report.toml" --profile vcf --check-tools
-```
+`--with-rarea` installs the retrieval extra. Select the appropriate PyTorch wheel
+source for CPU/CUDA when necessary and configure execution.device in the
+generated TOML. CPU retrieval still needs model weights. The source extras hpo
+and full mean Python dependency groups, not installed native tools/databases.
+
+## Manual installation and source builds
+
+The existing manual interface remains: create a Python 3.12 environment, then
+install `.` for phenotype without RareA, `.[hpo]` for retrieval, `.[vcf]` for
+VCF, or `.[full]` for both, using `-c constraints/runtime.txt`. Select one group.
+Dependency-only files are under requirements/. Copy the desired templates and
+replace endpoint/model placeholders and resource paths before running.
+
+To build the source distribution/wheel, install the tools pinned by
+constraints/build.txt and run `python -m build --no-isolation`. Keep deployment
+files when using a wheel: it installs runtime and Prompts, not install.py,
+configs, demos, preparation scripts, native tools or resources. The single
+inference entry remains `python main.py` / `mendelprime`.

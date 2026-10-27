@@ -39,8 +39,8 @@ preserves the original rankings and does not clear their historical failures.
 ## Independent reports and evaluation
 
 ```bash
-python main.py explain --config "$CFG/minimal/vcf_report.toml" --input "$OUT/vcf_case" --output-root "$OUT/explained" --cache-root "$WORK/cache/explained"
-python main.py explain --config "$CFG/minimal/vcf_report.toml" --input "$OUT/vcf_case" --output-root "$OUT/report_rewrite" --cache-root "$WORK/cache/report_rewrite" --rerender-report
+python main.py explain --config "$CFG/vcf-report/run.toml" --input "$OUT/vcf_case" --output-root "$OUT/explained" --cache-root "$WORK/cache/explained"
+python main.py explain --config "$CFG/vcf-report/run.toml" --input "$OUT/vcf_case" --output-root "$OUT/report_rewrite" --cache-root "$WORK/cache/report_rewrite" --rerender-report
 python main.py evaluate --input "$OUT/vcf_cohort" --truth "$WORK/truth.csv"
 ```
 
@@ -54,7 +54,7 @@ For a transient post-ranking evidence-service failure in a VCF case, preserve th
 first output and use the original canonical input to enable fresh family QC:
 
 ```bash
-python main.py explain --config "$CFG/minimal/vcf_report.toml" --input "$OUT/first/cohort/case/result.json" --case-inputs "$WORK/inputs/vcf/case.json" --output-root "$OUT/post_recovery" --cache-root "$WORK/cache/post_recovery" --recompute-assessment
+python main.py explain --config "$CFG/vcf-report/run.toml" --input "$OUT/first/cohort/case/result.json" --case-inputs "$WORK/inputs/vcf/case.json" --output-root "$OUT/post_recovery" --cache-root "$WORK/cache/post_recovery" --recompute-assessment
 ```
 
 This rebuilds post-ranking ACMG/report evidence; it does not rerun Direct, tools,

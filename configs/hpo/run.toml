@@ -2,7 +2,7 @@ resource_file = "resources.toml"
 
 [llm]
 base_url = "https://api.example.invalid/v1"
-model = "gpt-6.1-sol"
+model = "<MODEL_ID>"
 wire_api = "chat_completions"
 transport_retries = 1
 

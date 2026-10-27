@@ -1,4 +1,4 @@
-include main.py README.md .gitignore
+include main.py install.py README.md .gitignore
 recursive-include configs *.toml
 recursive-include constraints *.txt
 recursive-include requirements *.txt
