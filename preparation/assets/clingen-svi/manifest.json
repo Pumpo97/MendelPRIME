@@ -1,0 +1,32 @@
+{
+  "retrieved": "2026-10-21",
+  "resources": [
+    {
+      "name": "clingen_pm2_v1_0.pdf",
+      "url": "https://clinicalgenome.org/site/assets/files/5182/pm2_-_svi_recommendation_-_approved_sept2020.pdf",
+      "bytes": 26808,
+      "sha256": "30745e928c7146a479afdfb7f22230192a8d1d66f9239a463c53667dd9598c59",
+      "text_file": "clingen_pm2_v1_0.txt",
+      "text_sha256": "5bc3a6704620c96898b0bf33b070594477eaa7d446ddb2288af5e1a1cda9e25b",
+      "text_extractor": "pdftotext -layout"
+    },
+    {
+      "name": "clingen_pm3_v1_0.pdf",
+      "url": "https://www.clinicalgenome.org/site/assets/files/3717/svi_proposal_for_pm3_criterion_-_version_1.pdf",
+      "bytes": 65800,
+      "sha256": "17877e54edd58decfe2c374b3d3e2103e52752ea808d48eb7147d007f1ca4c70",
+      "text_file": "clingen_pm3_v1_0.txt",
+      "text_sha256": "b770e179d10f436a6118cdb1f0b40c0b7230c55f1406857f04bde0d8f28ba3bb",
+      "text_extractor": "pdftotext -layout"
+    },
+    {
+      "name": "clingen_ps2_pm6_v1_1.pdf",
+      "url": "https://clinicalgenome.org/site/assets/files/3461/svi_proposal_for_de_novo_criteria_v1_1.pdf",
+      "bytes": 250313,
+      "sha256": "ad9e996866cf83887fe744abf0d3c27931760867816f2f6d2064c2ce7485f02d",
+      "text_file": "clingen_ps2_pm6_v1_1.txt",
+      "text_sha256": "b11e168f7721149b13f5c6386195274ec3c5d3eb2df4d7113ac92ae098dd7ae7",
+      "text_extractor": "pdftotext -layout"
+    }
+  ]
+}

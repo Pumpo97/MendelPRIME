@@ -1,0 +1,35 @@
+resource_file = "vcf_report.resources.toml"
+
+[llm]
+base_url = "https://api.example.invalid/v1"
+model = "gpt-6.1-sol"
+wire_api = "chat_completions"
+transport_retries = 1
+
+[execution]
+lanes = 1
+max_llm_concurrency = 4
+queue_timeout_seconds = 1800
+cache_choices = false
+device = "cpu"
+
+[workers]
+sources = 2
+briefs = 4
+pairwise = 4
+literature = 4
+post_acmg = 4
+
+[ranking]
+similar_cases = false
+reflection = false
+
+[genotype]
+max_heap = "12g"
+timeout_seconds = 1800
+
+[explanation_resources]
+ranking_vep_enabled = false
+
+[output]
+explanation = true

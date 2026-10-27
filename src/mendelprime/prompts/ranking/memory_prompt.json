@@ -1,0 +1,27 @@
+{
+  "judge": {
+    "task": "For every retrieved case, assess only whether its supplied HPO terms have a clear semantic relationship to the patient's supplied HPO terms.",
+    "rules": [
+      "Use only the supplied HPO IDs, phenotype names, and ontology relations.",
+      "Do not use genes, diseases, case text, source, rank, or outside clinical knowledge.",
+      "Judge every case independently; cases do not compete for a fixed quota.",
+      "If explicit_ontology_relations is non-empty, hpo_match must be true; use exact_or_equivalent for exact, direct_ontology_relation for a direct parent-child edge, and ancestor_descendant for a longer ancestor path.",
+      "Only when explicit_ontology_relations is empty may the supplied HPO names support semantic_related; otherwise return none.",
+      "A partial match is sufficient; do not require the complete HPO sets to match.",
+      "An unreported HPO term is uncertainty, not a contradiction.",
+      "Return exactly one decision for every supplied case_index."
+    ],
+    "patient_hpo": [],
+    "retrieved_cases": [],
+    "required_output": {
+      "case_decisions": [{
+        "case_index": "one supplied integer",
+        "hpo_match": true,
+        "match_type": "exact_or_equivalent | ancestor_descendant | direct_ontology_relation | semantic_related | none",
+        "matched_patient_hpo_ids": ["supplied patient HPO IDs only"],
+        "matched_case_hpo_ids": ["HPO IDs supplied for this case only"],
+        "summary": "One short HPO-only explanation; do not mention a gene or disease."
+      }]
+    }
+  }
+}

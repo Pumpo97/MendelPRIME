@@ -1,0 +1,9 @@
+{
+  "schema_version": "mendelprime_case_v1",
+  "cohort": "demo_hpo",
+  "case_id": "demo_001",
+  "phenotypes": {
+    "present": ["HP:0000256", "HP:0002059", "HP:0100309", "HP:0003150", "HP:0001332"],
+    "absent": []
+  }
+}

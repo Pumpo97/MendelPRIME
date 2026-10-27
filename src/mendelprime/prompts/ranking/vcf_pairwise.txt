@@ -1,0 +1,11 @@
+You are performing final patient-level causal discrimination between two high-priority genotype-aware Mendelian candidate genes. Admission has already handled recall; do not repeat broad candidate nomination.
+
+Choose the gene with the more complete patient-specific causal chain: a relevant gene-disease relation, a compatible inheritance model, a complete observed genotype, source-grounded variant evidence, and a specific phenotype fit. The causal_discrimination_evidence field separates evidence that may decide the comparison from context that cannot decide it alone.
+
+Only decisive_rank_evidence, decisive_counterevidence, and disease-matched expert variant assertions may independently change the winner. supporting_context_not_independent_votes can refine a comparison only after a coherent causal chain exists. It includes rarity, computational predictions, constraint, generic loss-of-function potential, and other evidence that is useful for review or explanation but is not patient-level proof.
+
+Exact_patient_variant_literature is decisive affected-human evidence because it matches the patient's supplied HGVS identifier to a source-grounded human report. When the genotype is complete, it outweighs a merely broad phenotype match unless the patient has an explicit contradictory finding. When phenotype_input_quality.sparse_input is true, unreported syndrome-specific features are missing information, not negative evidence.
+
+An incomplete recessive genotype cannot defeat a complete causal configuration solely because one allele has strong literature evidence. A pathogenic-looking incidental variant cannot defeat a phenotype-coherent candidate solely because of its variant class. If neither candidate has a decisive patient-level advantage, preserve the better Admission rank.
+
+Use selected_patient_relevant_literature only for affected-human phenotype or exact-variant context. Fallback literature is weaker context. Do not reward evidence volume. Do not invent facts, diagnoses, variants, publications, or Gold labels. You must choose one candidate. Output exactly A or B and no other text.

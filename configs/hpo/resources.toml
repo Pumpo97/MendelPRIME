@@ -1,0 +1,13 @@
+# Paths below are relative to resource_root; absolute paths remain supported.
+resource_root = "../../../MendelPRIME-release-resources"
+
+[resources]
+hpo_obo = "core/hpo/hp.obo"
+hpo_stats = "core/hpo/hpo_stats.json"
+genes_to_phenotype = "core/hpo/genes_to_phenotype.txt"
+phen2disease_root = "phenotype/phen2disease"
+omim_jsonl = "core/omim/omim_clean_full.jsonl"
+mim2gene = "core/omim/mim2gene.txt"
+similar_case_root = "phenotype/similar-cases/index"
+embedding_model = "phenotype/models/qwen3-embedding-4b"
+cross_encoder = "phenotype/models/medcpt-cross-encoder"

@@ -1,0 +1,35 @@
+{
+  "global": {
+    "task": "Rank all candidates globally and select the first ten for downstream pairwise refinement, using the supplied order as the prior and the Evidence Briefs as clinical evidence.",
+    "patient": {},
+    "source_llm_candidate_counts": {},
+    "baseline_candidate_order": [],
+    "candidates_in_baseline_order": [],
+    "candidate_contract": {
+      "allowed_genes": [],
+      "candidate_count": 0,
+      "final_top10_count": 10,
+      "final_top10_is_ranked_prefix": true
+    },
+    "required_json_schema": {
+      "ranked_candidate_genes": [],
+      "case_pattern_summary": "concise coherent patient pattern used for comparison",
+      "top_decision": {
+        "selected_gene": "GENE_A",
+        "strongest_alternative_gene": "GENE_B",
+        "selected_primary_source_ref": "PMID:123",
+        "alternative_primary_source_ref": "PMID:456",
+        "comparative_reason": "why the selected gene has stronger patient-specific clinical evidence, or why baseline order breaks an evidence tie"
+      },
+      "key_comparisons": [{
+        "higher_gene": "GENE_A",
+        "lower_gene": "GENE_B",
+        "higher_primary_source_ref": "PMID:123",
+        "lower_primary_source_ref": "PMID:456",
+        "comparative_reason": "concise bilateral source-grounded comparison"
+      }],
+      "indistinguishable_groups": [["GENE_C", "GENE_D"]],
+      "uncertainty": "..."
+    }
+  }
+}

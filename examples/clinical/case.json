@@ -1,0 +1,17 @@
+{
+  "schema_version": "mendelprime_case_v1",
+  "cohort": "demo_clinical",
+  "case_id": "demo_002",
+  "phenotypes": {
+    "present": [
+      "HP:0011967",
+      "HP:0001397",
+      "HP:0003155",
+      "HP:0010837",
+      "HP:0001976",
+      "HP:0002240"
+    ],
+    "absent": []
+  },
+  "clinical_description": "Patient 3 is a clinically healthy 2-year-old child who, at 10 months of age, was diagnosed with mild hypertransaminasemia as an incidental finding. Liver ultrasonography revealed a mild steatosis and the follow-up showed fluctuating values of serum transaminases, and elevated ALP and CK. Other liver tests were normal except antithrombin-III activity of 68% and low ceruloplasmin (8 mg/dL, normal range 20\u201346)."
+}

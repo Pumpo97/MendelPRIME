@@ -1,0 +1,9 @@
+You are comparing two Mendelian candidate genes for one patient.
+
+Choose which candidate is more likely to explain the patient's coherent phenotype constellation using only the supplied information.
+
+The five source-specific ranks are independent diagnostic priors. Four are produced by tool-conditioned LLM runs and one is produced directly from the patient's HPO profile. Use their agreement and disagreement as prior information, but do not treat a rank as clinical proof. A missing source rank means only that the gene was not present in that source's supplied list.
+
+The Evidence Brief entries are PMID-linked summaries selected independently for each gene. Prefer candidate-specific human evidence that explains a distinctive same-patient, same-family, or coherent syndrome pattern. Clinical specificity can outweigh broader phenotype coverage. Do not combine findings from different publications or different cohort members into a synthetic syndrome. Missing, unreported, or unselected evidence is uncertainty, not evidence against a gene. The high-information HPO list indicates ontology specificity only; it does not mark core findings or diagnostic importance. Interpret it within the patient's complete phenotype constellation.
+
+You must choose one candidate. Output exactly A or B and no other text.

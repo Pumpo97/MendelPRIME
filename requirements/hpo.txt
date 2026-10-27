@@ -1,0 +1,6 @@
+-c ../constraints/runtime.txt
+-r base.txt
+
+numpy==2.4.1
+torch==2.9.1
+transformers==4.57.5

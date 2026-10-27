@@ -1,0 +1,62 @@
+{
+  "schema_version": "mendelprime_release_assets_v1",
+  "omim_backend": "local_snapshot",
+  "assets": {
+    "mendelprime-clinvar-20260117": {
+      "archive": "mendelprime-clinvar-20260117-public.tar.gz",
+      "archive_bytes": 1132498221,
+      "sha256": "756a75d953de5db2a48f273a65d7930e12d030877730493f0b02ee60349de087",
+      "payload_bytes": 4428038144,
+      "files": 2,
+      "public_packaging_revision": "2026-10-27"
+    },
+    "mendelprime-retrieval-support-20260815": {
+      "archive": "mendelprime-retrieval-support-20260815-public.tar.gz",
+      "archive_bytes": 410767323,
+      "sha256": "2c40a9e5d830add324947738eea7d43973838a027ab55b581c2e2e8cfff67bde",
+      "payload_bytes": 454819375,
+      "files": 17,
+      "public_packaging_revision": "2026-10-27"
+    },
+    "lirical-2.4.1": {
+      "archive": "lirical-cli-2.4.1-distribution.zip",
+      "archive_bytes": 32856717,
+      "sha256": "ddb27005bb6074db8b927a4261568f29a74a1ff8a6bba0ee2e8c24dcbe07cbc8",
+      "source_commit": "6e6add2df4023493aa05ea7718932db9ce97485c",
+      "protobuf_version": "4.36.2"
+    },
+    "mendelprime-similar-cases-rarea-20261027": {
+      "archive": "mendelprime-similar-cases-rarea-20261027-public.tar.gz",
+      "archive_bytes": 35059488,
+      "sha256": "384440086f24833c71d0dc57b530877cc963f4bd0d75a14cbb658caf8139fa7a",
+      "payload_bytes": 92408616,
+      "files": 4,
+      "sources": [
+        "rarea"
+      ],
+      "records": 5867,
+      "dimensions": 2560,
+      "public_packaging_revision": "2026-10-27"
+    },
+    "mendelprime-hpo-20260728-v1": {
+      "archive": "mendelprime-hpo-20260728-v1-public.tar.gz",
+      "archive_bytes": 6196123,
+      "sha256": "e9bdc344a66492643a6fbeecd56ab0b89f239e0e077410c867a163516f6f036e",
+      "payload_bytes": 36472125,
+      "files": 3,
+      "ontology_version": "hp/releases/2025-03-03",
+      "bundle_snapshot": "formal_20260728_v1",
+      "statistics_terms": 19077,
+      "public_packaging_revision": "2026-10-27"
+    },
+    "mendelprime-vcf-ranking-guidance-v1": {
+      "archive": "mendelprime-vcf-ranking-guidance-v1.tar.gz",
+      "archive_bytes": 16615,
+      "sha256": "9a9ac6fa629da18f2f432c8604948d4ef2f730ee009c63d5897fd9b1fa6d0a7d",
+      "payload_bytes": 77952,
+      "files": 2,
+      "purpose": "VCF ranking guidance",
+      "source_doi": "10.1126/scitranslmed.adz4172"
+    }
+  }
+}

@@ -1,0 +1,1 @@
+{"schema_version":"mendelprime_case_v1","cohort":"demo_vcf","case_id":"demo_001","phenotypes":{"present":["HP:0000256","HP:0002059","HP:0100309","HP:0003150","HP:0001332"],"absent":[]},"genomic":{"vcf_path":"demo.vcf.gz","assembly":"GRCh37","family_mode":"proband_only","sample_roles":{"proband":"NIST7035"},"sex":"FEMALE","assay_type":"WES"}}

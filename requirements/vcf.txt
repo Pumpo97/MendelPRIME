@@ -1,0 +1,8 @@
+-c ../constraints/runtime.txt
+-r base.txt
+
+beautifulsoup4==4.14.3
+bioutils==0.6.1
+hgvs==1.5.7
+pyfaidx==0.9.0.4
+pysam==0.23.3

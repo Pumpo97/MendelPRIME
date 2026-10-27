@@ -1,0 +1,68 @@
+{
+  "direct": {
+    "patient_phenotypes": [],
+    "clinical_description": null,
+    "task": "",
+    "output_schema": {"ranked_genes": ["GENE1", "GENE2"]}
+  },
+  "tool": {
+    "task": "Rerank the recalled Top100 candidate genes for this case.",
+    "patient": {
+      "present_phenotypes": [],
+      "hpo_ids": [],
+      "specificity_prioritized_phenotypes": [],
+      "clinical_description": null
+    },
+    "candidate_contract": {
+      "allowed_genes": [],
+      "ranked_output_must_include_only_allowed_genes": true,
+      "candidate_count": 0
+    },
+    "candidate_rows": [],
+    "ranking_rules": [
+      "Return ranked_genes as an ordered list of supplied gene symbols from most likely to least likely.",
+      "Prioritize phenotype-pattern plausibility over simple vote counting when the phenotype pattern is more informative.",
+      "Treat multi-tool presence as a weak prior, not proof.",
+      "If uncertainty is high, state it in uncertainty instead of inventing evidence."
+    ],
+    "required_json_schema": {"ranked_genes": ["GENE1", "GENE2"], "top_gene": "GENE1"}
+  },
+  "amelie": {
+    "task": "Rank the supplied AMELIE candidates using patient-gene-article clinical correspondence.",
+    "patient": {"observed_phenotypes": [], "clinical_description": null},
+    "candidate_contract": {
+      "allowed_genes": [],
+      "return_every_allowed_gene_exactly_once": true,
+      "candidate_input_order_is_amelie_tool_rank": true,
+      "article_is_supplementary_evidence": true
+    },
+    "candidate_packets": [],
+    "ranking_process": [
+      "Summarize the patient's coherent phenotype constellation without using candidate rank.",
+      "Verify whether each article directly connects its gene to affected humans or a clinical disease pattern.",
+      "Compare whether that same reported clinical pattern explains the patient's co-occurring findings.",
+      "Begin from the AMELIE order and change it only for article-grounded clinical correspondence."
+    ],
+    "required_json_schema": {}
+  },
+  "fusion": {
+    "task": "Rank the deduplicated five-source Top5 candidate union and return the final Top10.",
+    "patient": {"observed_phenotypes": [], "clinical_description": null},
+    "candidate_contract": {
+      "allowed_genes": [],
+      "return_every_allowed_gene_exactly_once": true,
+      "final_top10_is_first_ten_ranked_genes_or_all_when_fewer": true
+    },
+    "candidate_packets": [],
+    "baseline_candidate_order": [],
+    "baseline_order_note": "Use only as a tie-breaker when article-grounded clinical evidence cannot distinguish candidates.",
+    "source_note": "The direct_hpo_llm source is an independent phenotype-only gene ranking. Like the four tool-conditioned rankings, it is a diagnostic prior rather than clinical evidence.",
+    "ranking_process": [
+      "Summarize the patient's coherent phenotype constellation without counting HPO terms.",
+      "Verify whether each article directly links its candidate gene to affected humans or a clinical disease pattern.",
+      "Compare whether that same reported pattern explains the patient's co-occurring findings.",
+      "Rank all candidates together and preserve baseline order only when clinical evidence is indistinguishable."
+    ],
+    "required_json_schema": {}
+  }
+}

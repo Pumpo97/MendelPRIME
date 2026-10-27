@@ -1,0 +1,30 @@
+resource_file = "resources.toml"
+
+[llm]
+base_url = "https://api.example.invalid/v1"
+model = "gpt-6.1-sol"
+wire_api = "chat_completions"
+transport_retries = 1
+
+[execution]
+lanes = 1
+max_llm_concurrency = 4
+queue_timeout_seconds = 1800
+cache_choices = false
+device = "cuda"
+
+[workers]
+sources = 3
+briefs = 4
+pairwise = 4
+
+[external]
+phen2gene_acknowledged = false
+amelie_acknowledged = false
+amelie_verify_tls = true
+
+[ranking]
+reflection = false
+
+[output]
+explanation = false

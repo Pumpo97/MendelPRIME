@@ -1,0 +1,22 @@
+include main.py README.md .gitignore
+recursive-include configs *.toml
+recursive-include constraints *.txt
+recursive-include requirements *.txt
+recursive-include examples *.json *.jsonl *.txt
+include examples/README.md examples/truth.csv
+include examples/vcf/demo.vcf.gz examples/vcf/demo.vcf.gz.tbi
+recursive-include docs *.md
+include docs/assets/figure1.png
+recursive-include preparation *.py *.md *.json *.tsv
+include resources/README.md
+include resources/ASSETS.json
+include resources/RESOURCE_REGISTER.json
+global-exclude *.pyc *.pyo
+prune tests
+prune validation
+prune audit
+prune artifacts
+prune .runtime
+prune .secrets
+prune .git
+global-exclude .env .env.* *.env *.log *.pem *.key *.ipynb

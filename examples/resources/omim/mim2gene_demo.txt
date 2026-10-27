@@ -1,0 +1,2 @@
+# MIM Number	MIM Entry Type	Entrez Gene ID	Approved Gene Symbol	Ensembl Gene ID
+605481	gene	259266	ASPM	ENSG00000066279

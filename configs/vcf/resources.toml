@@ -1,0 +1,66 @@
+# Paths below are relative to resource_root; absolute paths remain supported.
+resource_root = "../../../MendelPRIME-release-resources"
+
+[resources]
+hpo_obo = "core/hpo/hp.obo"
+hpo_stats = "core/hpo/hpo_stats.json"
+omim_jsonl = "core/omim/omim_clean_full.jsonl"
+mim2gene = "core/omim/mim2gene.txt"
+
+[genotype]
+java = "tools/java/bin/java"
+exomiser_jar = "genotype/exomiser/exomiser-cli-14.0.0.jar"
+exomiser_properties = "genotype/exomiser/application-2406.properties"
+lirical_jar = "genotype/lirical/lirical-cli-2.4.1.jar"
+lirical_version = "2.4.1"
+lirical_data = "genotype/lirical/data"
+gene_map = "genotype/lirical/data/hgnc_complete_set.txt"
+
+[[genotype.assemblies]]
+assembly = "GRCh37"
+exomiser_release = "2406"
+phenotype_release = "2406"
+exomiser_genome_data = "genotype/exomiser/data/2406_hg19"
+exomiser_phenotype_data = "genotype/exomiser/data/2406_phenotype"
+lirical_exomiser_data = "genotype/exomiser/data/2406_hg19"
+lirical_variants_db = "genotype/exomiser/data/2406_hg19/2406_hg19_variants.mv.db"
+lirical_clinvar_db = "genotype/exomiser/data/2406_hg19/2406_hg19_clinvar.mv.db"
+
+[variant_knowledge]
+clinvar_db = "variant-knowledge/clinvar/clinvar_20260117.sqlite"
+clingen_validity = "variant-knowledge/clingen/gene_disease_validity.csv"
+clingen_vcep = "variant-knowledge/clingen/variant_pathogenicity.tsv"
+clingen_manifest = "variant-knowledge/clingen/resource_manifest.json"
+
+[explanation_resources]
+assembly = "GRCh37"
+reference_fasta = "assessment/grch37/reference/hg19.fa"
+vep_command = ["tools/vep/vep"]
+vep_cache = "assessment/grch37/vep/cache"
+vep_fasta = "assessment/grch37/vep/final_hg19.fa"
+vep_cache_version = "104"
+vep_tool_version = "104.3"
+clinvar_protein_disease_db = "assessment/grch37/clinvar-protein/clinvar_protein_acmg_disease_20260117.sqlite"
+clinvar_protein_release = "20260117"
+gnomad_sites = "assessment/grch37/gnomad/gnomad.exomes.r2.1.1.sites.vcf.bgz"
+gnomad_coverage = "assessment/grch37/gnomad/gnomad.exomes.coverage.summary.tsv.bgz"
+population_release = "2.1.1"
+gnomad_constraint = "assessment/grch37/gnomad/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz"
+constraint_release = "2.1.1"
+spliceai_snv = "assessment/grch37/predictions/spliceai_scores.masked.snv.hg19.vcf.gz"
+spliceai_indel = "assessment/grch37/predictions/spliceai_scores.masked.indel.hg19.vcf.gz"
+spliceai_release = "1.3"
+revel = "assessment/grch37/predictions/new_tabbed_revel.tsv.gz"
+revel_release = "local_20260831"
+mane_summary = "assessment/transcripts/MANE.GRCh38.v1.5.summary.txt.gz"
+mane_release = "1.5"
+autopvs1_root = "assessment/grch37/autopvs1"
+ai_cura_protocol = "guidelines/ai-cura/AI-CURA_Protocol.md"
+ai_cura_workbook = "guidelines/ai-cura/adz4172_tables_s1_to_s13.xlsx"
+ai_cura_knowledgebase = "guidelines/ai-cura/ai_cura_knowledgebase.json"
+ai_cura_manifest = "guidelines/ai-cura/resource_manifest.json"
+clingen_guideline_manifest = "guidelines/clingen-svi-20261021/manifest.json"
+clingen_dosage_table = "report/clingen-dosage/clingen_dosage_detailed_GRCh37_20260924.tsv"
+genereviews_index = "report/genereviews/genereviews_index.tsv"
+post_evidence_catalog = "report/curated-literature/lmx1b-family-series-20261024/catalog.json"
+kinship_executable = "tools/plink2/plink2"

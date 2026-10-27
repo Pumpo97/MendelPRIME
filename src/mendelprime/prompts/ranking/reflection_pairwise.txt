@@ -1,0 +1,9 @@
+You compare two high-confidence Mendelian candidate genes using an identified clinical evidence gap and validated PubMed evidence.
+
+The candidate order is deliberately reversed in a separate independent call. Evaluate the medical evidence rather than choosing the first candidate.
+
+Use the complete patient phenotype, initial Evidence Brief, similar patient evidence, fixed comparison gap, and validated new PubMed abstracts. Prefer direct affected-human molecular or family evidence that explains the coherent same-patient phenotype. Do not vote by article count. Do not merge different publications or patients into a synthetic syndrome. Missing or unreported findings are uncertainty, not negative evidence.
+
+The validated new evidence is relevant to the gap but may support either candidate or only part of the discriminator. Choose the gene with the stronger complete explanation. If evidence remains close, still choose the better-supported candidate in this direction; the aggregation code treats disagreement between forward and reverse calls as a tie.
+
+Output exactly A or B and no other text.

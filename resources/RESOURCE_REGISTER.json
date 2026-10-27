@@ -1,0 +1,942 @@
+{
+  "schema_version": "mendelprime_resource_inventory_v1",
+  "measured_date": "2026-10-27",
+  "rows": [
+    {
+      "field": "resources.hpo_obo",
+      "target": "core/hpo/hp.obo",
+      "modes": [
+        "hpo",
+        "clinical",
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 10058110,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "A",
+      "preparation_route": "P00",
+      "title": "HPO ontology",
+      "declaration": "HPO project resource attachment",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "resources.hpo_stats",
+      "target": "core/hpo/hpo_stats.json",
+      "modes": [
+        "hpo",
+        "clinical",
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 5880534,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "A",
+      "preparation_route": "P00",
+      "title": "HPO statistics",
+      "declaration": "Preserve statistic values and resource version",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "resources.genes_to_phenotype",
+      "target": "core/hpo/genes_to_phenotype.txt",
+      "modes": [
+        "hpo",
+        "clinical"
+      ],
+      "kind": "file",
+      "payload_bytes": 20533481,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "A",
+      "preparation_route": "P00",
+      "title": "Gene-phenotype annotations",
+      "declaration": "Same frozen HPO snapshot",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "resources.phen2disease_root",
+      "target": "phenotype/phen2disease",
+      "modes": [
+        "hpo",
+        "clinical"
+      ],
+      "kind": "directory",
+      "payload_bytes": 3857325426,
+      "file_count": 4,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P01",
+      "title": "Phen2Disease data",
+      "declaration": "Four upstream precomputed files; extraction/layout, not new inference",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "resources.omim_jsonl",
+      "target": "core/omim/omim_clean_full.jsonl",
+      "modes": [
+        "hpo",
+        "clinical",
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 528158842,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P02",
+      "title": "OMIM mirror JSONL",
+      "declaration": "Normalized local mirror; raw HTML is not this schema",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py omim",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "resources.mim2gene",
+      "target": "core/omim/mim2gene.txt",
+      "modes": [
+        "hpo",
+        "clinical",
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 983163,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P02",
+      "title": "OMIM gene map",
+      "declaration": "Version-matched official table; no model inference",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "resources.similar_case_root",
+      "target": "phenotype/similar-cases/index",
+      "modes": [
+        "hpo",
+        "clinical"
+      ],
+      "kind": "directory",
+      "payload_bytes": 92408616,
+      "file_count": 4,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "A",
+      "preparation_route": "P00",
+      "title": "RareA vector index",
+      "declaration": "Records, IDs and vectors are inseparable",
+      "required_when": "HPO/clinical similar_cases enabled"
+    },
+    {
+      "field": "resources.embedding_model",
+      "target": "phenotype/models/qwen3-embedding-4b",
+      "modes": [
+        "hpo",
+        "clinical"
+      ],
+      "kind": "directory",
+      "payload_bytes": 8059521975,
+      "file_count": 14,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P03",
+      "title": "Qwen embedding model",
+      "declaration": "Pinned weight shards plus configuration/tokenizer",
+      "required_when": "HPO/clinical similar_cases enabled"
+    },
+    {
+      "field": "resources.cross_encoder",
+      "target": "phenotype/models/medcpt-cross-encoder",
+      "modes": [
+        "hpo",
+        "clinical"
+      ],
+      "kind": "directory",
+      "payload_bytes": 438891058,
+      "file_count": 6,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "A",
+      "preparation_route": "P03",
+      "title": "MedCPT reranker",
+      "declaration": "Published support asset is converted safetensors",
+      "required_when": "HPO/clinical similar_cases enabled"
+    },
+    {
+      "field": "genotype.java",
+      "target": "tools/java/bin/java",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 332902691,
+      "file_count": 466,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "D",
+      "preparation_route": "P04",
+      "title": "Java runtime",
+      "declaration": "Measured size is the complete installed Java root",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "genotype.exomiser_jar",
+      "target": "genotype/exomiser/exomiser-cli-14.0.0.jar",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 45170736,
+      "file_count": 76,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "D",
+      "preparation_route": "P04",
+      "title": "Exomiser executable",
+      "declaration": "Measured size includes launcher and adjacent libraries",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "genotype.exomiser_properties",
+      "target": "genotype/exomiser/application-2406.properties",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 4801,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "D",
+      "preparation_route": "P04",
+      "title": "Exomiser properties",
+      "declaration": "Configure paths; do not change analysis policy",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "genotype.lirical_jar",
+      "target": "genotype/lirical/lirical-cli-2.4.1.jar",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 30929493,
+      "file_count": 63,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "D",
+      "preparation_route": "P04",
+      "title": "LIRICAL executable",
+      "declaration": "Built ZIP is available; data is separate",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "genotype.lirical_data",
+      "target": "genotype/lirical/data",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "directory",
+      "payload_bytes": 363069960,
+      "file_count": 11,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P04",
+      "title": "LIRICAL data",
+      "declaration": "Complete download directory with transcript serializations",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "genotype.gene_map",
+      "target": "genotype/lirical/data/hgnc_complete_set.txt",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 16902462,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P04",
+      "title": "HGNC gene map",
+      "declaration": "Already part of lirical_data",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "genotype.assemblies[0].exomiser_genome_data",
+      "target": "genotype/exomiser/data/2406_hg19",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "directory",
+      "payload_bytes": 28394826845,
+      "file_count": 6,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P04",
+      "title": "Exomiser genome data",
+      "declaration": "Official 2406 hg19 data; shared by LIRICAL",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "genotype.assemblies[0].exomiser_phenotype_data",
+      "target": "genotype/exomiser/data/2406_phenotype",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "directory",
+      "payload_bytes": 12793597686,
+      "file_count": 45,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P04",
+      "title": "Exomiser phenotype data",
+      "declaration": "Not interchangeable with the project HPO package",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "genotype.assemblies[0].lirical_exomiser_data",
+      "target": "genotype/exomiser/data/2406_hg19",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "directory",
+      "payload_bytes": 28394826845,
+      "file_count": 6,
+      "sidecars": [],
+      "alias_of": "genotype.assemblies[0].exomiser_genome_data",
+      "category": "B",
+      "preparation_route": "P04",
+      "title": "LIRICAL Exomiser directory",
+      "declaration": "Alias of Exomiser genome data, not another download",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "genotype.assemblies[0].lirical_variants_db",
+      "target": "genotype/exomiser/data/2406_hg19/2406_hg19_variants.mv.db",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 27692785664,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P04",
+      "title": "LIRICAL allele database",
+      "declaration": "Contained in Exomiser genome data",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "genotype.assemblies[0].lirical_clinvar_db",
+      "target": "genotype/exomiser/data/2406_hg19/2406_hg19_clinvar.mv.db",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 113102848,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P04",
+      "title": "LIRICAL ClinVar database",
+      "declaration": "Native mv.db, not project SQLite",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "variant_knowledge.clinvar_db",
+      "target": "variant-knowledge/clinvar/clinvar_20260117.sqlite",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 4330106880,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "A",
+      "preparation_route": "P05",
+      "title": "ClinVar coordinate SQLite",
+      "declaration": "Already processed; raw TSV/VCF needs conversion",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py clinvar",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "variant_knowledge.clingen_validity",
+      "target": "variant-knowledge/clingen/gene_disease_validity.csv",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 1119517,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P06",
+      "title": "ClinGen validity CSV",
+      "declaration": "Reader accepts official preamble; manifest still required",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py clingen",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "variant_knowledge.clingen_vcep",
+      "target": "variant-knowledge/clingen/variant_pathogenicity.tsv",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 31537659,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P06",
+      "title": "ClinGen VCEP export",
+      "declaration": "Current export is TSV; validate actual delimiter and headers",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py clingen",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "variant_knowledge.clingen_manifest",
+      "target": "variant-knowledge/clingen/resource_manifest.json",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 725,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P06",
+      "title": "ClinGen snapshot manifest",
+      "declaration": "Generate hashes binding both exports and release date",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py clingen",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.reference_fasta",
+      "target": "assessment/grch37/reference/hg19.fa",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 3199905909,
+      "file_count": 1,
+      "sidecars": [
+        {
+          "suffix": ".fai",
+          "bytes": 3539
+        }
+      ],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P07",
+      "title": "GRCh37 reference",
+      "declaration": "Extract matching FASTA and create matching fai; no coordinate conversion",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py fasta --kind reference",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.vep_command",
+      "target": [
+        "tools/vep/vep"
+      ],
+      "modes": [
+        "vcf"
+      ],
+      "kind": "command",
+      "payload_bytes": null,
+      "note": "Command closure includes runtime/image store and mounts; executable size alone is not meaningful.",
+      "category": "D",
+      "preparation_route": "P08",
+      "title": "VEP runtime",
+      "declaration": "Executable plus Perl/container/runtime/mount closure",
+      "required_when": "VCF report enabled or ranking_vep_enabled"
+    },
+    {
+      "field": "explanation_resources.vep_cache",
+      "target": "assessment/grch37/vep/cache",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "directory",
+      "payload_bytes": 15619882908,
+      "file_count": 9334,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P08",
+      "title": "VEP cache",
+      "declaration": "Indexed 104_GRCh37 cache; no new variant scoring at preparation",
+      "required_when": "VCF report enabled or ranking_vep_enabled"
+    },
+    {
+      "field": "explanation_resources.vep_fasta",
+      "target": "assessment/grch37/vep/final_hg19.fa",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 3147288983,
+      "file_count": 1,
+      "sidecars": [
+        {
+          "suffix": ".fai",
+          "bytes": 713
+        }
+      ],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P07",
+      "title": "VEP reference",
+      "declaration": "Separate existing file; do not assume byte identity to reference_fasta",
+      "required_when": "VCF report enabled or ranking_vep_enabled",
+      "shipped_preparation_command": "python preparation/prepare_resources.py fasta --kind vep",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.clinvar_protein_disease_db",
+      "target": "assessment/grch37/clinvar-protein/clinvar_protein_acmg_disease_20260117.sqlite",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 97931264,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "A",
+      "preparation_route": "P05",
+      "title": "ClinVar protein/condition SQLite",
+      "declaration": "Preserve disease fields and comparator selection",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py clinvar-protein",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.gnomad_sites",
+      "target": "assessment/grch37/gnomad/gnomad.exomes.r2.1.1.sites.vcf.bgz",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 63145056967,
+      "file_count": 1,
+      "sidecars": [
+        {
+          "suffix": ".tbi",
+          "bytes": 944740
+        }
+      ],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P09",
+      "title": "gnomAD sites",
+      "declaration": "Native v2.1.1 VCF plus matching index",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py vcf-index --kind gnomad-sites",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.gnomad_coverage",
+      "target": "assessment/grch37/gnomad/gnomad.exomes.coverage.summary.tsv.bgz",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 1688344712,
+      "file_count": 1,
+      "sidecars": [
+        {
+          "suffix": ".tbi",
+          "bytes": 836622
+        }
+      ],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P09",
+      "title": "gnomAD coverage",
+      "declaration": "Native v2.1 table plus coordinate index; no missing-value imputation",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py coverage",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.gnomad_constraint",
+      "target": "assessment/grch37/gnomad/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 4609488,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P09",
+      "title": "gnomAD constraint",
+      "declaration": "Official v2.1.1 gene table; parser reads compressed text",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md"
+    },
+    {
+      "field": "explanation_resources.spliceai_snv",
+      "target": "assessment/grch37/predictions/spliceai_scores.masked.snv.hg19.vcf.gz",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 28628353596,
+      "file_count": 1,
+      "sidecars": [
+        {
+          "suffix": ".tbi",
+          "bytes": 1256351
+        }
+      ],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P10",
+      "title": "SpliceAI SNV scores",
+      "declaration": "Masked v1.3 hg19 precomputed VCF plus index",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py vcf-index --kind spliceai-snv",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.spliceai_indel",
+      "target": "assessment/grch37/predictions/spliceai_scores.masked.indel.hg19.vcf.gz",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 68864080813,
+      "file_count": 1,
+      "sidecars": [
+        {
+          "suffix": ".tbi",
+          "bytes": 2081327
+        }
+      ],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P10",
+      "title": "SpliceAI indel scores",
+      "declaration": "Same score model/version as SNV file",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py vcf-index --kind spliceai-indel",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.revel",
+      "target": "assessment/grch37/predictions/new_tabbed_revel.tsv.gz",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 652223312,
+      "file_count": 1,
+      "sidecars": [
+        {
+          "suffix": ".tbi",
+          "bytes": 732099
+        }
+      ],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P10",
+      "title": "REVEL scores",
+      "declaration": "Raw CSV -> exact nine-column TSV -> BGZF -> tabix",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py revel",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.mane_summary",
+      "target": "assessment/transcripts/MANE.GRCh38.v1.5.summary.txt.gz",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 1115288,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P11",
+      "title": "MANE transcript summary",
+      "declaration": "GRCh38 columns are transcript context, not hg19 coordinates",
+      "required_when": "VCF report enabled"
+    },
+    {
+      "field": "explanation_resources.autopvs1_root",
+      "target": "assessment/grch37/autopvs1",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "directory",
+      "payload_bytes": 3293253825,
+      "file_count": 48,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "D",
+      "preparation_route": "P11",
+      "title": "AutoPVS1 source/data",
+      "declaration": "Pinned source plus disclosed local FASTA compatibility patch",
+      "source_commit": "7fb1be97667e5ef576f81bf2fabbddcf9a4c7594",
+      "modified_read_data_sha256": "3cdc58615bea15d6ff7a5ec31d01df3890d66c888419810f2ccc7a22fbb552ee",
+      "required_when": "configured input branch; see docs/CONFIGURATION.md",
+      "shipped_preparation_command": "python preparation/prepare_resources.py autopvs1",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.ai_cura_protocol",
+      "target": "guidelines/ai-cura/AI-CURA_Protocol.md",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 16273,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P12",
+      "title": "AI-CURA protocol",
+      "declaration": "Derived protocol text, not a raw PDF",
+      "required_when": "VCF report enabled",
+      "shipped_preparation_command": "python preparation/prepare_resources.py aicura",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.ai_cura_workbook",
+      "target": "guidelines/ai-cura/adz4172_tables_s1_to_s13.xlsx",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 127292,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P12",
+      "title": "AI-CURA supplement workbook",
+      "declaration": "Preserve the official XLSX bytes",
+      "required_when": "VCF report enabled",
+      "shipped_preparation_command": "python preparation/prepare_resources.py aicura",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.ai_cura_knowledgebase",
+      "target": "guidelines/ai-cura/ai_cura_knowledgebase.json",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 75862,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P12",
+      "title": "AI-CURA knowledge base",
+      "declaration": "Workbook tables -> schema-bound JSON",
+      "required_when": "VCF ranking and reports",
+      "shipped_preparation_command": "python preparation/prepare_resources.py aicura",
+      "preparation_documentation": "preparation/README.md",
+      "ready_asset": "mendelprime-vcf-ranking-guidance-v1.tar.gz"
+    },
+    {
+      "field": "explanation_resources.ai_cura_manifest",
+      "target": "guidelines/ai-cura/resource_manifest.json",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 2090,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P12",
+      "title": "AI-CURA manifest",
+      "declaration": "Exact public and original pins supported; do not arbitrarily rewrite metadata",
+      "required_when": "VCF ranking and reports",
+      "shipped_preparation_command": "python preparation/prepare_resources.py aicura",
+      "preparation_documentation": "preparation/README.md",
+      "ready_asset": "mendelprime-vcf-ranking-guidance-v1.tar.gz"
+    },
+    {
+      "field": "explanation_resources.clingen_guideline_manifest",
+      "target": "guidelines/clingen-svi-20261021/manifest.json",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 1402,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P12",
+      "title": "ClinGen guidance texts",
+      "declaration": "Original guidance -> text extraction -> relative manifest",
+      "referenced_closure": [
+        "clingen_pm2_v1_0.pdf",
+        "clingen_pm2_v1_0.txt",
+        "clingen_pm3_v1_0.pdf",
+        "clingen_pm3_v1_0.txt",
+        "clingen_ps2_pm6_v1_1.pdf",
+        "clingen_ps2_pm6_v1_1.txt",
+        "manifest.json"
+      ],
+      "closure_bytes": 359574,
+      "required_when": "VCF report enabled",
+      "shipped_preparation_command": "python preparation/prepare_resources.py svi",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.clingen_dosage_table",
+      "target": "report/clingen-dosage/clingen_dosage_detailed_GRCh37_20260924.tsv",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 248801,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "B",
+      "preparation_route": "P13",
+      "title": "ClinGen dosage table",
+      "declaration": "Optional GRCh37 report enrichment",
+      "required_when": "optional report enrichment when configured"
+    },
+    {
+      "field": "explanation_resources.genereviews_index",
+      "target": "report/genereviews/genereviews_index.tsv",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 104,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P13",
+      "title": "GeneReviews chapter index",
+      "declaration": "Current configured subset contains three genes; chapters are fetched online",
+      "required_when": "optional report enrichment when configured",
+      "shipped_preparation_command": "python preparation/prepare_resources.py genereviews --genes GENE...",
+      "preparation_documentation": "preparation/README.md"
+    },
+    {
+      "field": "explanation_resources.post_evidence_catalog",
+      "target": "report/curated-literature/lmx1b-family-series-20261024/catalog.json",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 25125,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "C",
+      "preparation_route": "P13",
+      "title": "Curated original evidence",
+      "declaration": "Manual allele/quote/family verification; all referenced files required",
+      "curated_record_count": 3,
+      "curated_gene_count": 2,
+      "referenced_closure": [
+        "GRIN2B_ClinVar_VCV000205710.xml",
+        "GRIN2B_ClinVar_VCV000205710_identity.txt",
+        "GRIN2B_PMC5656050_fulltext.xml",
+        "GRIN2B_PMC5656050_jats_text.txt",
+        "GRIN2B_PMC6874887_fulltext.xml",
+        "GRIN2B_PMC6874887_jats_text.txt",
+        "LMX1B_ClinVar_VCV000007007.xml",
+        "LMX1B_ClinVar_VCV000007007_identity.txt",
+        "LMX1B_PMID9837817_pdftotext_raw.txt",
+        "LMX1B_PMID9837817_primary_article_scan.pdf",
+        "catalog.json"
+      ],
+      "closure_bytes": 992564,
+      "required_when": "optional report enrichment when configured",
+      "shipped_preparation_command": "python preparation/prepare_resources.py curated --ack-reviewed",
+      "preparation_documentation": "preparation/README.md",
+      "human_biological_review_required": true
+    },
+    {
+      "field": "explanation_resources.kinship_executable",
+      "target": "tools/plink2/plink2",
+      "modes": [
+        "vcf"
+      ],
+      "kind": "file",
+      "payload_bytes": 42492200,
+      "file_count": 1,
+      "sidecars": [],
+      "alias_of": null,
+      "category": "D",
+      "preparation_route": "P13",
+      "title": "PLINK2",
+      "declaration": "Optional kinship QC executable, not variant evidence by itself",
+      "required_when": "optional report enrichment when configured"
+    }
+  ],
+  "reader_header_samples": {
+    "explanation_resources.gnomad_coverage": "chrom\tpos\tmean\tmedian\tover_1\tover_5\tover_10\tover_15\tover_20\tover_25\tover_30\tover_50\tover_100",
+    "explanation_resources.gnomad_constraint": "gene\ttranscript\tobs_mis\texp_mis\toe_mis\tmu_mis\tpossible_mis\tobs_mis_pphen\texp_mis_pphen\toe_mis_pphen\tpossible_mis_pphen\tobs_syn\texp_syn\toe_syn\tmu_syn\tpossible_syn\tobs_lof\tmu_lof\tpossible_lof\texp_lof\tpLI\tpNull\tpRec\toe_lof\toe_syn_lower\toe_syn_upper\toe_mis_lower\toe_mis_upper\toe_lof_lower\toe_lof_upper\tconstraint_flag\tsyn_z\tmis_z\tlof_z\toe_lof_upper_rank\toe_lof_upper_bin\toe_lof_upper_bin_6\tn_sites\tclassic_caf\tmax_af\tno_lofs\tobs_het_lof\tobs_hom_lof\tdefined\tp\texp_hom_lof\tclassic_caf_afr\tclassic_caf_amr\tclassic_caf_asj\tclassic_caf_eas\tclassic_caf_fin\tclassic_caf_nfe\tclassic_caf_oth\tclassic_caf_sas\tp_afr\tp_amr\tp_asj\tp_eas\tp_fin\tp_nfe\tp_oth\tp_sas\ttranscript_type\tgene_id\ttranscript_level\tcds_length\tnum_coding_exons\tgene_type\tgene_length\texac_pLI\texac_obs_lof\texac_exp_lof\texac_oe_lof\tbrain_expression\tchromosome\tstart_position\tend_position",
+    "explanation_resources.revel": "#chr\thg19_pos\tgrch38_pos\tref\talt\taaref\taaalt\tREVEL\tEnsembl_transcriptid",
+    "explanation_resources.mane_summary": "#NCBI_GeneID\tEnsembl_Gene\tHGNC_ID\tsymbol\tname\tRefSeq_nuc\tRefSeq_prot\tEnsembl_nuc\tEnsembl_prot\tMANE_status\tGRCh38_chr\tchr_start\tchr_end\tchr_strand",
+    "explanation_resources.genereviews_index": {
+      "header": "#NBK_id\tGR_shortname\tgenesymbol",
+      "rows": 3
+    }
+  },
+  "all_configured_fields_covered": 46,
+  "category_definitions": {
+    "A": "Prepared project asset: user extracts and configures it",
+    "B": "Upstream ready-made/precomputed file: use matching release and required companion files",
+    "C": "Needs format/index/derived metadata preparation if starting from raw source",
+    "D": "Tool installation/build/configuration, not scientific data transformation"
+  },
+  "class_counts": {
+    "A": 7,
+    "B": 20,
+    "C": 12,
+    "D": 7
+  },
+  "size_note": "Measured payload sizes on 2026-10-27, not minimum requirements or download totals. Shared references and nested files overlap.",
+  "project_upload_group": [
+    "mendelprime-hpo-20260728-v1-public.tar.gz",
+    "mendelprime-similar-cases-rarea-20261027-public.tar.gz"
+  ],
+  "preparation_tools": {
+    "entry": "preparation/prepare_resources.py",
+    "llm_required": false,
+    "network_downloads_automatic": false
+  }
+}

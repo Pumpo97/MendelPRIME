@@ -1,0 +1,4 @@
+cohort,case_id,gold_genes
+demo_hpo,demo_001,GCDH
+demo_clinical,demo_002,TMEM199
+demo_vcf,demo_001,GCDH

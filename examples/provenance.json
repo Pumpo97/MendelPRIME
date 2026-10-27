@@ -1,0 +1,66 @@
+{
+  "schema_version": "mendelprime_demo_provenance_v1",
+  "source_case": "EXO0001",
+  "source_case_applies_to": ["hpo", "vcf"],
+  "source_phenopacket": {
+    "dataset": "384 Phenopackets",
+    "version": "1.0",
+    "doi": "10.5281/zenodo.3905420",
+    "license": "CC-BY-4.0",
+    "pmid": "27672653",
+    "subject": "Patient 5"
+  },
+  "clinical_demo": {
+    "case_id": "demo_002",
+    "cohort": "demo_clinical",
+    "source_case": "PMID:29321044-Vajro-2018-TMEM199-Patient_3",
+    "pmid": "29321044",
+    "pmcid": "PMC5763540",
+    "subject": "Patient 3, age 2 years",
+    "article_title": "Three unreported cases of TMEM199-CDG, a rare genetic liver disease with abnormal glycosylation",
+    "article_url": "https://doi.org/10.1186/s13023-017-0757-3",
+    "source_license": "CC-BY-4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "hpo_dataset_doi": "10.5281/zenodo.3905420",
+    "text_origin": "Clinical description from the paired clinical corpus and original case report, not generated from HPO labels.",
+    "normalization": "Joined line wraps and normalized whitespace; clinical facts and measurements unchanged.",
+    "source_clinical_sha256": "51660c5f0b9754c7eaada6c74499ddabecd3bc1c71a40481f884ee7de5d803e8",
+    "clinical_description_sha256": "93d3e6aa3840cc5d1b750c5f3ae85111a91c96769d44b8b00c3290201271f4ee",
+    "clinical_characters": 411,
+    "clinical_words": 61,
+    "positive_hpo_count": 6,
+    "negative_hpo_count": 0,
+    "evaluation_gold_gene": "TMEM199",
+    "historical_reference": {
+      "input": "HPO plus clinical description",
+      "status": "ok",
+      "final_rank": 1,
+      "top5": ["TMEM199", "CCDC115", "ATP6AP1", "MPI", "ATP7B"]
+    }
+  },
+  "simulation": {
+    "background_url": "https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/NA12878/Garvan_NA12878_HG001_HiSeq_Exome/project.NIST.hc.snps.indels.vcf",
+    "background_sample": "NIST7035",
+    "assembly": "GRCh37",
+    "variant_records": 416690,
+    "variant_records_unchanged": true,
+    "variant_records_sha256": "738598997cc14152e1649c139f016b811605e2849846c76b98af244442e227df",
+    "spike_in": {"chrom": "19", "pos": 13007113, "ref": "G", "alt": "A", "GT": "1/1", "DP": null, "GQ": null},
+    "header_changes": ["Removed machine-specific GATK and bcftools command headers", "Replaced the reference filesystem path with GRCh37"],
+    "index": "Regenerated with tabix after BGZF compression",
+    "files": {
+      "vcf/demo.vcf.gz": {"bytes": 13694833, "sha256": "720a48b50e5028165a8477d59c014114948765c46c51b5d44adbaf93c888ec4e"},
+      "vcf/demo.vcf.gz.tbi": {"bytes": 1043584, "sha256": "5c8476f0868bf51292dd41b235571e037b5a7b7075911ab9e54d7ae2fe2cbc79"}
+    }
+  },
+  "reference_result": {
+    "scope": "Previously completed simulated VCF evaluation, not a current-release run",
+    "date": "2026-08-09",
+    "model": "gpt-5.5",
+    "status": "ok",
+    "gold_gene": "GCDH",
+    "gold_ranks": {"exomiser": 1, "lirical": 1, "final": 1},
+    "final_top5": ["GCDH", "MT-ND5", "SLC9A6", "GSX2", "TPP1"],
+    "included_amelie_vcf": true
+  }
+}

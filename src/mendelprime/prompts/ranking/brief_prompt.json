@@ -1,0 +1,32 @@
+{
+  "brief": {
+    "task": "For this gene only, select and summarize zero to three supplied PubMed sources containing patient-relevant affected-human clinical evidence.",
+    "phenotype_context": {
+      "information_content_note": "Information content indicates phenotype specificity, not diagnostic importance.",
+      "high_information_phenotype_ids": [],
+      "all_present_phenotypes": [],
+      "all_present_phenotypes_included": true,
+      "clinical_description": null
+    },
+    "candidate_gene": "",
+    "evidence_contract": {"allowed_article_evidence_ids": []},
+    "organized_evidence": {
+      "article_sources": [],
+      "omim_gene_context": [],
+      "unavailable_refs": []
+    },
+    "selection_rules": [
+      "Return at most three unique PMID evidence IDs and do not fill unused slots.",
+      "Do not perform term-by-term matching or select by the number of overlapping HPO terms.",
+      "Keep the affected-human gene relation and the clinical findings reported together in the evidence summary.",
+      "Summarize the source; do not assess candidate correctness, patient fit, specificity, or evidence strength."
+    ],
+    "required_json_schema": {
+      "gene": "",
+      "selected_evidence": [{
+        "evidence_id": "PMID:123",
+        "evidence_summary": "two or three source-grounded sentences describing the affected-human gene relation and the clinical findings reported together; at most 800 characters"
+      }]
+    }
+  }
+}

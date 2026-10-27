@@ -1,0 +1,3 @@
+
+
+Some candidates also include Similar Case Evidence entries with SC: evidence IDs. These are retrieved patient-level cases, not publications. Each entry explicitly carries the known_causal_gene reported for that source case and the complete case HPO terms. The HPO-only judge established semantic phenotype relatedness only; it did not prove that the source gene explains the current patient. Use the matched HPO fields, gene-link provenance, source PMID metadata, and phenotype specificity as evidence, do not count duplicates independently, and do not treat a Similar Case as an automatic diagnosis. You may cite only supplied PMID: or SC: evidence IDs for that gene.

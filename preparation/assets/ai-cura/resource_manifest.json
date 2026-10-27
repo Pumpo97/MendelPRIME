@@ -1,0 +1,53 @@
+{
+  "schema_version": "mgagent_variant_knowledge_manifest_v1",
+  "release": "2026-09-01",
+  "purpose": "AI-CURA-aligned germline ACMG evidence assessment for MGAgent genotype-aware ranking",
+  "primary_method": {
+    "doi": "10.1126/scitranslmed.adz4172",
+    "supplementary_pdf": "scitranslmed.adz4172_sm.pdf",
+    "tables_workbook": {
+      "path": "adz4172_tables_s1_to_s13.xlsx",
+      "size_bytes": 127292,
+      "sha256": "4e8c55487dafcf88f4c34c233e52f5fc12860f7a7e9dcef4490f6464535ddbfa"
+    },
+    "derived_knowledgebase": {
+      "path": "ai_cura_knowledgebase.json",
+      "size_bytes": 75862,
+      "sha256": "4cf9185a4847d78958cc421e3d9e9d2f62746c959617ab0e60541cc92427335c"
+    }
+  },
+  "resources": {
+    "mane_1_5": {
+      "path": "MANE.GRCh38.v1.5.summary.txt.gz",
+      "size_bytes": 1115288,
+      "sha256": "d10ace2720681a3b2e0eefd9da4f551274a6b4141ac9bfd6a2565dfb6e9ad55c"
+    },
+    "clinvar_protein_condition_index": {
+      "path": "clinvar_protein_acmg_disease_20260117.sqlite",
+      "size_bytes": 97931264,
+      "sha256": "38938654523fcf40f994510cb09ef20d45f4a4e923a233d7965055e300c6f28d"
+    },
+    "gnomad_gene_constraint_2_1_1": {
+      "path": "gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz",
+      "size_bytes": 4609488,
+      "sha256": "153031d34b6794e8e99eb0306bc3c50b13b18accda8b0ffef91c2623dd3affd5"
+    },
+    "revel": {
+      "path": "new_tabbed_revel.tsv.gz",
+      "size_bytes": 652223312,
+      "modified_ns": 1788170750119886056
+    },
+    "gnomad_exomes_2_1_1": {
+      "path": "gnomad.exomes.r2.1.1.sites.vcf.bgz",
+      "size_bytes": 63145056967,
+      "modified_ns": 1788186669036734261
+    }
+  },
+  "boundaries": [
+    "Gold report classifications and criteria are evaluation-only and are never runtime inputs.",
+    "ClinVar and ClinGen assertions are external evidence and are not converted to PP5 or BP6.",
+    "VCEP criteria require exact disease and inheritance context before scoring.",
+    "PS1 and PM5 require an exact ClinVar condition identifier match.",
+    "CNV classification remains outside the sequence-variant ACMG engine."
+  ]
+}

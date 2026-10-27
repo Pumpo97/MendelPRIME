@@ -1,0 +1,3 @@
+
+
+A candidate may include Similar Case Evidence with an SC: identifier. It is a retrieved patient-level case, not a publication. Its known_causal_gene is the reported causal gene for that source case, while the HPO-only judge established only semantic phenotype relatedness and did not validate the gene for the current patient. Use the complete case HPO terms, explicit matched HPO fields, gene-link provenance, and source PMID metadata when comparing candidates; do not count duplicate cases as independent evidence and do not treat a Similar Case as an automatic diagnosis.
