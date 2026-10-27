@@ -203,6 +203,14 @@ transports, not scientific validation or separate installers/native programs.
 It is an environment setting, not another TOML parameter. Prefer a valid CA
 configuration or the narrower AMELIE-only setting when sufficient.
 
+If AMELIE fails certificate validation, this is a service/trust-chain issue,
+not a missing scientific database. Prefer fixing the certificate/CA chain.
+For an explicitly authorized compatibility exception, set
+`external.amelie_verify_tls = false` in the existing `[external]` run-TOML
+section; leave other HTTPS verification enabled. The application logs this
+exception. Neither installation nor a successful doctor check proves that the
+remote service's certificate or API is currently usable.
+
 ## 6. Resource layout and preflight
 
 - FASTA files require adjacent `.fai` indexes. gnomAD sites/coverage, SpliceAI

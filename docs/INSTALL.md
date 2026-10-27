@@ -90,6 +90,8 @@ Keep WORK, archives and installed resources outside CODE.
 Archive imports use temporary extraction space and verify existing payloads;
 allow space for both the archive and expanded data. They do not delete an older
 installation or replace a different database snapshot.
+Download verification and extraction are reported as separate stages. Tar
+archives are unpacked in one pass after checksum verification.
 
 For HPO/clinical, adding `--explanation` at runtime with the rank profile is also
 sufficient once resources are ready. VCF needs the report resource profile, not

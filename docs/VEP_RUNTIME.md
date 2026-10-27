@@ -60,6 +60,11 @@ Doctor launches the actual command and checks its version. A subsequent real
 VCF run verifies annotation output. Do not add the scientific VEP arguments to
 `vep_command`; the adapter supplies them.
 
+Do not wrap a proot-based udocker run in `strace -f`: both use ptrace and the
+nested tracing can fail with `ptrace(TRACEME): Operation not permitted` even
+when an ordinary VEP annotation succeeds. Use MendelPRIME's `--audit-root` for
+application events, and reproduce native-tool errors without an outer tracer.
+
 ## Acquiring a runtime on a new host
 
 The [official VEP installation guide](https://www.ensembl.org/info/docs/tools/vep/script/vep_download.html)

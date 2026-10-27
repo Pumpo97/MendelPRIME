@@ -180,9 +180,12 @@ def archive_path(asset, directory, download):
             part = Path(temporary) / path.name
             with urllib.request.urlopen(RELEASE + path.name, timeout=90) as response, part.open("wb") as output:
                 shutil.copyfileobj(response, output)
+            print(f"Verifying {path.name}", flush=True)
             if part.stat().st_size != asset["archive_bytes"] or sha(part) != asset["sha256"]:
                 raise ValueError(f"Downloaded archive checksum mismatch: {path.name}")
             os.link(part, path)
+            return path
+    print(f"Verifying {path.name}", flush=True)
     if not path.is_file() or path.stat().st_size != asset["archive_bytes"] or sha(path) != asset["sha256"]:
         raise ValueError(f"Archive checksum mismatch: {path.name}")
     return path
@@ -195,6 +198,7 @@ def safe_member(name):
 
 def install_archive(archive, root):
     root.mkdir(parents=True, exist_ok=True)
+    print(f"Extracting {archive.name}", flush=True)
     with tempfile.TemporaryDirectory(dir=root, prefix=".install-") as temporary:
         stage = Path(temporary)
         if archive.suffix == ".zip":
@@ -206,12 +210,12 @@ def install_archive(archive, root):
                 package.extractall(stage)
             payload, target = stage / "lirical-cli-2.4.1", root / "genotype/lirical"
         else:
-            with tarfile.open(archive) as package:
+            with tarfile.open(archive, mode="r|*") as package:
                 for member in package:
                     safe_member(member.name)
                     if not member.isfile() and not member.isdir():
                         raise ValueError("Archive links and special files are not allowed")
-                package.extractall(stage, filter="data")
+                    package.extract(member, stage, filter="data")
             payload, target = stage, root
         files = [(p, target / p.relative_to(payload)) for p in payload.rglob("*") if p.is_file()]
         if not files:
