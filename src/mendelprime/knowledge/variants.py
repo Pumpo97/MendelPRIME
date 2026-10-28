@@ -7,6 +7,7 @@ import re
 import sqlite3
 import threading
 from contextlib import closing
+from collections.abc import Mapping
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import quote
@@ -447,6 +448,107 @@ def _associated(raw, gene):
     return any(value.strip().upper() == gene for value in re.split(r"[;,|]", raw))
 
 
+def _transcript_owner(row, transcript, hgvsc):
+    pattern = rf"^{re.escape(transcript.split('.')[0])}(?:\.\d+)?\(([^()]+)\):{re.escape(hgvsc)}(?:\s|$)"
+    match = re.match(pattern, row["name"] or "")
+    return match[1] if match and _associated(row["gene_symbol"], match[1]) else None
+
+
+def validate_gene_scope(variant):
+    """Validate quarantined identity provenance without promoting it to clinical evidence."""
+    from mendelprime.domain import _native_binding_identity
+
+    field = "native_variant.gene_scope"
+    scope = variant["details"]["gene_scope"]
+    require(
+        isinstance(scope, Mapping)
+        and set(scope)
+        == {
+            "scope",
+            "candidate_gene",
+            "transcript_gene",
+            "reported_identity",
+            "clinvar_records",
+            "database_version",
+            "basis",
+        },
+        field,
+        "schema_mismatch",
+    )
+    owner, identity, source = scope["transcript_gene"], scope["reported_identity"], variant["source"]
+    validate_gene(owner, field)
+    require(
+        scope["scope"] == "regional_context"
+        and scope["candidate_gene"] == variant["gene"]
+        and owner != variant["gene"]
+        and scope["basis"] == "same_allele_transcript_accession_and_coding_hgvs",
+        field,
+        "invalid_scope",
+    )
+    require(
+        isinstance(identity, Mapping) and set(identity) == {"transcript", "hgvs_c", "hgvs_p"},
+        field,
+        "schema_mismatch",
+    )
+    require(
+        all(isinstance(identity[k], str) and identity[k] for k in ("transcript", "hgvs_c"))
+        and (identity["hgvs_p"] is None or isinstance(identity["hgvs_p"], str)),
+        field,
+        "identity_required",
+    )
+    require(all(variant[k] is None for k in identity), field, "foreign_identity_not_quarantined")
+    require(
+        isinstance(source, Source)
+        and source.provider == "lirical"
+        and variant["key"] is not None
+        and _native_binding_identity(
+            source,
+            variant["gene"],
+            variant["key"],
+            source.case_key,
+            identity["transcript"],
+            identity["hgvs_c"],
+        ),
+        field,
+        "native_identity_mismatch",
+    )
+    original = re.search(
+        rf"{re.escape(identity['transcript'])}:{re.escape(identity['hgvs_c'])}(?::(?P<protein>p\.[^\s:]+))?",
+        source.content,
+    )
+    require(
+        original is not None and original["protein"] == identity["hgvs_p"], field, "native_protein_mismatch"
+    )
+    require(
+        isinstance(scope["database_version"], str) and scope["database_version"].startswith("clinvar:"),
+        field,
+        "database_version_required",
+    )
+    records = scope["clinvar_records"]
+    require(isinstance(records, (tuple, list)) and bool(records), field, "clinvar_records_required")
+    for record in records:
+        require(
+            isinstance(record, Mapping)
+            and set(record) == {"variation_id", "allele_id", "gene_symbol", "name"},
+            field,
+            "schema_mismatch",
+        )
+        require(
+            all(
+                isinstance(record[k], (str, int)) and str(record[k]).isdigit() and int(record[k]) > 0
+                for k in ("variation_id", "allele_id")
+            ),
+            field,
+            "clinvar_identifier_required",
+        )
+        require(
+            isinstance(record["name"], str)
+            and _transcript_owner(record, identity["transcript"], identity["hgvs_c"]) == owner,
+            field,
+            "transcript_owner_mismatch",
+        )
+
+
 def scope_native_transcripts(state, tools):
     """Keep regional candidates, but do not assign another gene's coding HGVS to them."""
     info, failure = _clinvar_info(state)
@@ -468,8 +570,10 @@ def scope_native_transcripts(state, tools):
                         if mapping is not None and mapping.provider == "hgnc":
                             row = json.loads(mapping.content)
                             names = {
-                                value.strip() for field in ("symbol", "prev_symbol", "alias_symbol")
-                                for value in (row.get(field) or "").split("|") if value.strip()
+                                value.strip()
+                                for field in ("symbol", "prev_symbol", "alias_symbol")
+                                for value in (row.get(field) or "").split("|")
+                                if value.strip()
                             }
                             if gene["gene"] in names:
                                 aliases.update(names)
@@ -484,11 +588,10 @@ def scope_native_transcripts(state, tools):
                                     "SELECT variation_id,allele_id,gene_symbol,name FROM variants WHERE assembly=? AND chromosome=? AND position=? AND reference=? AND alternate=?",
                                     key,
                                 ).fetchall()
-                            pattern = rf"^{re.escape(transcript.split('.')[0])}(?:\.\d+)?\(([^()]+)\):{re.escape(hgvsc)}(?:\s|$)"
                             for row in cache[key]:
-                                match = re.match(pattern, row["name"] or "")
-                                if match and _associated(row["gene_symbol"], match[1]):
-                                    owners.setdefault(match[1], []).append(dict(row))
+                                owner = _transcript_owner(row, transcript, hgvsc)
+                                if owner:
+                                    owners.setdefault(owner, []).append(dict(row))
                         if len(owners) == 1 and not aliases.intersection(owners):
                             owner = next(iter(owners))
                             validate_gene(owner)
@@ -504,9 +607,13 @@ def scope_native_transcripts(state, tools):
                                 "basis": "same_allele_transcript_accession_and_coding_hgvs",
                             }
                             variant = {
-                                **variant, "transcript": None, "hgvs_c": None, "hgvs_p": None,
+                                **variant,
+                                "transcript": None,
+                                "hgvs_c": None,
+                                "hgvs_p": None,
                                 "details": {**variant["details"], "gene_scope": scope},
                             }
+                            validate_gene_scope(variant)
                         variants.append(variant)
                     genes.append({**gene, "variants": tuple(variants)})
                 scoped.append({**tool, "genes": tuple(genes)})
@@ -950,32 +1057,95 @@ def validate_result(result):
             "citation_source_fields_required",
         )
     for row in result["lookups"]:
-        provider, code, status = row["provider"], row["error_code"], row["status"]
+        validate_lookup(row, gene)
+
+
+def validate_lookup(row, gene):
+    fields = {"provider", "gene", "variant_key", "status", "error_code"}
+    require(
+        isinstance(row, Mapping) and set(row) in (fields, fields | {"out_of_scope_records"}),
+        "lookup",
+        "schema_mismatch",
+    )
+    require(row["gene"] == gene, "lookup", "gene_mismatch")
+    provider, code, status, key = (row[k] for k in ("provider", "error_code", "status", "variant_key"))
+    require(
+        isinstance(provider, str) and provider and not any(c.isspace() for c in provider),
+        "lookup.provider",
+        "canonical_provider_required",
+    )
+    require(
+        status
+        in {
+            "found",
+            "not_found",
+            "not_applicable",
+            "resource_unavailable",
+            "query_failed",
+            "schema_mismatch",
+            "gene_scope_mismatch",
+        },
+        "lookup.status",
+        "unsupported_lookup_status",
+    )
+    require(
+        isinstance(code, str) and not any(c.isspace() for c in code),
+        "lookup.error_code",
+        "safe_error_code_required",
+    )
+    require(status != "found" or not code, "lookup.error_code", "found_must_not_have_error")
+    if key is not None:
+        require(type(key) is tuple and len(key) == 5, "lookup.variant_key", "variant_key_required")
+        variant_key(*key)
+    if "out_of_scope_records" not in row:
+        return
+    records = row["out_of_scope_records"]
+    require(
+        provider == "clinvar" and key is not None and isinstance(records, (tuple, list)) and bool(records),
+        "lookup.out_of_scope_records",
+        "clinvar_records_required",
+    )
+    for record in records:
         require(
-            isinstance(provider, str) and provider and not any(c.isspace() for c in provider),
-            "lookup.provider",
-            "canonical_provider_required",
-        )
-        require(
-            status
-            in {
-                "found",
-                "not_found",
-                "not_applicable",
-                "resource_unavailable",
-                "query_failed",
-                "schema_mismatch",
-                "gene_scope_mismatch",
+            isinstance(record, Mapping)
+            and set(record)
+            == {
+                "gene_symbols",
+                "name",
+                "variation_id",
+                "allele_id",
+                "variant_key",
+                "database_version",
+                "locator",
             },
-            "lookup.status",
-            "unsupported_lookup_status",
+            "lookup.out_of_scope_records",
+            "schema_mismatch",
+        )
+        names = record["gene_symbols"]
+        require(
+            isinstance(names, (tuple, list)) and bool(names) and gene not in names,
+            "lookup.out_of_scope_records",
+            "excluded_gene_scope_required",
+        )
+        for name in names:
+            validate_gene(name)
+        require(record["variant_key"] == key, "lookup.out_of_scope_records", "allele_scope_mismatch")
+        require(
+            all(isinstance(record[k], str) and record[k] for k in ("name", "database_version"))
+            and record["database_version"].startswith("clinvar:"),
+            "lookup.out_of_scope_records",
+            "record_metadata_required",
         )
         require(
-            isinstance(code, str) and not any(c.isspace() for c in code),
-            "lookup.error_code",
-            "safe_error_code_required",
+            all(
+                isinstance(record[k], str) and record[k].isdigit() and int(record[k]) > 0
+                for k in ("variation_id", "allele_id")
+            )
+            and record["locator"]
+            == f"https://www.ncbi.nlm.nih.gov/clinvar/variation/{record['variation_id']}/",
+            "lookup.out_of_scope_records",
+            "clinvar_identity_required",
         )
-        require(status != "found" or not code, "lookup.error_code", "found_must_not_have_error")
 
 
 def sources(result):

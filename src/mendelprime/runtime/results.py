@@ -126,7 +126,10 @@ def _optional_rankings(stages, final):
     return output
 
 
-def project_result(run, explanation=None):
+_AUTO_CONTEXT = object()
+
+
+def project_result(run, explanation=None, *, context=_AUTO_CONTEXT):
     """Project one completed ranking run to the public V4 contract."""
     require(hasattr(run, "patient") and hasattr(run, "final"), "result.run", "completed_ranking_required")
     value = run.explanation if explanation is None else explanation
@@ -135,17 +138,41 @@ def project_result(run, explanation=None):
         "result.explanation",
         "valid_explanation_required",
     )
-    context = None
-    if run.final.genes:
+    if context is _AUTO_CONTEXT:
         from mendelprime.runtime.explanation import freeze_context
 
-        context = freeze_context(run)
+        try:
+            context = freeze_context(run) if run.final.genes else None
+        except MendelPrimeError as error:
+            context = None
+            value = {
+                "status": "degraded",
+                "issues": (f"explanation_context_invalid:{error.field}:{error.code}",),
+                "markdown": "",
+            }
+    if context is None and run.final.genes:
+        require(
+            value["status"] != "ok"
+            and not any(value.get(k) for k in ("report", "assessment", "assessment_progress", "markdown")),
+            "result.explanation",
+            "validated_context_required",
+        )
+        value = {
+            "status": "degraded",
+            "issues": value.get("issues") or ("explanation_context_unavailable",),
+            "markdown": "",
+        }
     result = (
         _phenotype_result(run, context) if run.patient.genomic is None else _genotype_result(run, context)
     )
     if value["status"] != "disabled":
-        require(context is not None, "result.explanation", "ranking_required_for_explanation")
-        result = with_explanation(result, run.patient.key, context, value)
+        if context is None:
+            result["status"] = "degraded"
+            result["stages"]["final_explanation"] = project_explanation(
+                run.patient.key, run.final.genes[:5], value
+            )
+        else:
+            result = with_explanation(result, run.patient.key, context, value)
     issues = tuple(
         dict.fromkeys(
             [code for row in run.stages.get("trace", ()) for code in row["error_codes"]]
@@ -155,6 +182,7 @@ def project_result(run, explanation=None):
                 if item.kind == "gene_documents"
                 for code in item.facts.get("retrieval_errors", ())
             ]
+            + (list(value.get("issues", ())) if context is None else [])
         )
     )
     limits = [issue for issue in issues if is_evidence_limitation(issue)]

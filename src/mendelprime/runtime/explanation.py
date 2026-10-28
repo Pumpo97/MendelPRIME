@@ -877,12 +877,21 @@ def _validate_native_gene(row, genes, case_key, assembly, native_keys):
             "source_scope_mismatch",
         )
         details = variant["details"]
+        expected = _EXOMISER_DETAILS if provider == "exomiser" else _LIRICAL_DETAILS
         require(
             isinstance(details, Mapping)
-            and (set(details) == _EXOMISER_DETAILS or set(details) == _LIRICAL_DETAILS),
+            and (
+                set(details) == expected
+                or provider == "lirical"
+                and set(details) == expected | {"gene_scope"}
+            ),
             f"{field}.variants.details",
             "schema_mismatch",
         )
+        if "gene_scope" in details:
+            from mendelprime.knowledge.variants import validate_gene_scope
+
+            validate_gene_scope(variant)
         key = variant["key"]
         if key is not None:
             _assembly(key, assembly, f"{field}.variants.key")
@@ -959,8 +968,9 @@ def _validate_knowledge(gene, value, assembly):
         require(item["gene"] == gene and type(item["source_fields"]) is tuple, field, "citation_seed_invalid")
         _assembly(item["variant_key"], assembly, field)
     for item in value["lookups"]:
-        _keys(item, {"provider", "gene", "variant_key", "status", "error_code"}, field)
-        require(item["gene"] == gene, field, "gene_result_mismatch")
+        from mendelprime.knowledge.variants import validate_lookup
+
+        validate_lookup(item, gene)
         if item["variant_key"] is not None:
             _assembly(item["variant_key"], assembly, field)
 

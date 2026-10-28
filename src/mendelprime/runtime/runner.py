@@ -290,16 +290,21 @@ class Runner:
                     progress=progress if self.audit_root is not None or self.on_stage is not None else None,
                 )
                 explanation = None
-                if reporting:
-                    try:
-                        context = freeze_context(run)
-                    except MendelPrimeError as error:
-                        explanation = {"status": "degraded", "issues": (error.code,), "markdown": ""}
-                    else:
+                try:
+                    context = freeze_context(run)
+                except MendelPrimeError as error:
+                    context = None
+                    explanation = {
+                        "status": "degraded",
+                        "issues": (f"explanation_context_invalid:{error.field}:{error.code}",),
+                        "markdown": "",
+                    }
+                else:
+                    if reporting:
                         explanation = explain(
                             model, context, self.resources, acmg_workers=self.config["workers"]["post_acmg"]
                         )
-                payload = project_result(run, explanation)
+                payload = project_result(run, explanation, context=context)
                 markdown = explanation.get("markdown", "") if explanation else ""
                 return payload["status"], publish_case(output_root, case.key, payload, markdown)
 
