@@ -19,11 +19,6 @@ from mendelprime.domain import (
 )
 from mendelprime.knowledge.hpo import ancestors, consulted_terms
 
-_PATIENT_QC = re.compile(
-    r"\b(call|calls|calling|genotype|read|depth|coverage|quality|gq|parent|maternal|paternal|"
-    r"inherit|inherited|de[- ]novo|phase|phasing|zygos|allele balance|origin|confirm|confirmation)\b",
-    re.IGNORECASE,
-)
 _CAUSAL_ASSERTION = re.compile(
     r"\b(pathogenic|benign|causal|causative|causes?|disease[- ]causing|diagnos(?:is|tic)|etiolog(?:y|ic)|"
     r"explains? the (?:patient|phenotype)|responsible for|proves?|confirms? (?:the )?(?:cause|diagnosis)|"
@@ -32,12 +27,11 @@ _CAUSAL_ASSERTION = re.compile(
 )
 
 
-def _patient_qc_limitation(claim, cited):
-    """Bind noncausal context to this case and measured calls to every claimed allele."""
+def _patient_observation_context(claim, cited):
+    """Qualify observations by their typed scope and records, not prose keywords."""
     if (
         claim["scope"] != "allele"
         or claim["polarity"] not in {"background", "limitation"}
-        or not _PATIENT_QC.search(claim["text"])
         or _CAUSAL_ASSERTION.search(claim["text"])
     ):
         return False
@@ -455,11 +449,11 @@ class OTEM:
                 "citations",
                 "source_variant_scope_mismatch",
             )
-        patient_qc = _patient_qc_limitation(claim, cited)
+        observation_context = _patient_observation_context(claim, cited)
         support = cited if claim["polarity"] == "support" else self.closure(tuple(s.source_id for s in cited))
         for gene in genes:
             require(
-                patient_qc
+                observation_context
                 or any(gene in s.genes and s.kind not in {"patient_observation", "derived"} for s in support),
                 f"genes[{gene}]",
                 "non_patient_source_required",
