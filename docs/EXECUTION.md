@@ -73,6 +73,13 @@ failed cases or invalid input/configuration. The final stdout JSON lists each
 case's status and output path. A missing or failed resource is not negative
 biological evidence. Source/allele/quotation checks are not bypassed on a retry.
 
+If explanation-context validation fails after ranking, the completed rankings
+are retained in a degraded two-file result, with an empty report and explicit
+`explanation_context_invalid` diagnostics. Unvalidated provenance is not exported:
+`provenance` is null and standalone `explain` refuses it until the evidence
+context has been recovered and validated. This does not label failed evidence
+or an unavailable report as successful.
+
 Native regional candidates and transcript-specific annotations have different
 scopes. When the same allele, transcript accession and coding HGVS identify a
 different gene in ClinVar, the LIRICAL candidate and raw record are retained;
@@ -84,7 +91,10 @@ remain failures; successful installation alone does not verify those bindings.
 
 `report_passage_source_mismatch` means a selected passage was not offered under
 the cited source. The existing single repair receives the offending claim,
-citation and actual passage owners; gene/allele eligibility still has to pass.
+citation and actual passage owners. Missing allele identity bindings are checked
+in the same pass and included in that one repair, with scoped identity-source
+options. These options are not automatic citations or pathogenicity evidence;
+gene/allele eligibility, medical support and literal quotations still have to pass.
 If that repair attempt also fails, report composition
 does not run, even when ranking and ACMG have completed. This is an evidence
 binding failure, not an installation failure. Preserve the failed result and
