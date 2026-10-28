@@ -97,7 +97,9 @@ def call_with_repair(
             if attempt:
                 raise
             code = error.code if error.category in {"model", "response"} else "assessment_record_invalid"
-            if code == "report_passage_source_mismatch" and isinstance(error.source, dict):
+            if code.startswith(
+                ("report_passage_source_mismatch", "report_claim_selection_invalid:allele_source_required")
+            ) and isinstance(error.source, dict):
                 binding_error = {"location": error.field, **error.source}
         except (KeyError, TypeError, ValueError) as error:
             if attempt:

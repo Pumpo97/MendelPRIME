@@ -98,6 +98,16 @@ def validate_claim_shape(claim, case_key):
         require(len(genes) == 1 and variants, "scope", "allele_scope_requires_gene_and_variant")
 
 
+def bound_alleles(sources, genes):
+    """Original, single-gene allele records; derived summaries are not new identity proof."""
+    return {
+        key
+        for source in sources
+        if source.kind != "derived" and len(source.genes) == 1 and source.genes[0] in genes
+        for key in source.variant_keys
+    }
+
+
 class OTEM:
     def __init__(self, case_key):
         validate_case_key(case_key)
@@ -458,15 +468,10 @@ class OTEM:
                 f"genes[{gene}]",
                 "non_patient_source_required",
             )
+        anchored = bound_alleles(support, genes)
         for variant in variants:
             require(
-                any(
-                    variant in s.variant_keys
-                    and len(s.genes) == 1
-                    and s.genes[0] in genes
-                    and s.kind != "derived"
-                    for s in support
-                ),
+                variant in anchored,
                 f"variant_keys[{':'.join(map(str, variant))}]",
                 "allele_source_required",
             )

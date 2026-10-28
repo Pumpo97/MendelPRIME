@@ -17,7 +17,7 @@ from mendelprime.domain import (
     variant_key,
     variant_text,
 )
-from mendelprime.harness.memory import OTEM, validate_claim_shape
+from mendelprime.harness.memory import OTEM, bound_alleles, validate_claim_shape
 
 _MAX_TOKENS = 6000
 _INPUT_CHAR_LIMIT = 250_000
@@ -1249,7 +1249,7 @@ def _validate_claims(claims, memory, max_sources, prepared=None):
 
 def _decode_claims(raw, context, memory, prepared, *, coverage=True):
     _check(set(raw) == {"claims"}, "report_claim_selection_schema_invalid")
-    claims = []
+    claims, binding_errors = [], []
     for number, item in enumerate(_rows(raw["claims"], "report_claim_selection_empty", nonempty=coverage), 1):
         row = _object(item, "report_claim_invalid")
         _check(
@@ -1258,9 +1258,9 @@ def _decode_claims(raw, context, memory, prepared, *, coverage=True):
         )
         _check(row["scope"] in _SCOPES and row["polarity"] in _POLARITIES, "report_claim_kind_invalid")
         genes = _strings(row["genes"], "report_claim_genes_invalid", nonempty=False)
-        refs = _strings(row["variant_refs"], "report_claim_variants_invalid", nonempty=False)
+        variant_refs = _strings(row["variant_refs"], "report_claim_variants_invalid", nonempty=False)
         try:
-            variants = tuple(prepared["variant_by_alias"][alias] for alias in refs)
+            variants = tuple(prepared["variant_by_alias"][alias] for alias in variant_refs)
         except KeyError:
             _error("report_claim_variant_unknown")
         text = _expand_aliases(
@@ -1270,7 +1270,7 @@ def _decode_claims(raw, context, memory, prepared, *, coverage=True):
             "report_claim_variant_alias_unknown",
             "report_claim_variant_alias_unbound",
         )
-        citations = []
+        citations, declared_sources, claim_errors = [], [], []
         for citation_number, item in enumerate(_rows(row["citations"], "report_claim_citations_missing"), 1):
             citation = _object(item, "report_claim_citation_invalid")
             _check(
@@ -1280,6 +1280,7 @@ def _decode_claims(raw, context, memory, prepared, *, coverage=True):
             ref = _text(citation["source_ref"], "report_claim_source_unknown")
             source = prepared["source_by_alias"].get(ref)
             _check(source is not None, "report_claim_source_unknown")
+            declared_sources.append(source)
             if "passage_ref" in citation:
                 passage_ref = _text(citation["passage_ref"], "report_claim_quote_invalid")
                 packet = prepared.get("wire_packet", {})
@@ -1292,19 +1293,24 @@ def _decode_claims(raw, context, memory, prepared, *, coverage=True):
                     (),
                 )
                 if passage_ref not in allowed:
-                    raise MendelPrimeError(
-                        "report_passage_source_mismatch", category="response",
-                        field=f"claims[{number}].citations[{citation_number}]",
-                        source={
-                            "claim": row,
-                            "invalid_citation": citation,
-                            "passage_owner_refs": [
-                                entry["source_ref"] for entry in packet.get("available_sources", ())
-                                if passage_ref in entry["passage_refs"]
-                            ],
-                            "instruction": "Choose a source/passage pair valid for this claim. Passage ownership does not establish gene or allele eligibility.",
-                        },
+                    claim_errors.append(
+                        MendelPrimeError(
+                            "report_passage_source_mismatch",
+                            category="response",
+                            field=f"claims[{number}].citations[{citation_number}]",
+                            source={
+                                "claim": row,
+                                "invalid_citation": citation,
+                                "passage_owner_refs": [
+                                    entry["source_ref"]
+                                    for entry in packet.get("available_sources", ())
+                                    if passage_ref in entry["passage_refs"]
+                                ],
+                                "instruction": "Choose a source/passage pair valid for this claim. Passage ownership does not establish gene or allele eligibility.",
+                            },
+                        )
                     )
+                    continue
                 offered = packet["passages"][passage_ref]
             else:
                 offered = _text(citation["quote"], "report_claim_quote_invalid")
@@ -1323,6 +1329,57 @@ def _decode_claims(raw, context, memory, prepared, *, coverage=True):
                 )
                 _check(any(quote in packet["passages"][key] for key in refs), "report_quote_not_in_packet")
             citations.append({"source_id": source.source_id, "quote": quote})
+        support = (
+            declared_sources
+            if row["polarity"] == "support"
+            else memory.closure(tuple(s.source_id for s in declared_sources))
+        )
+        anchored = bound_alleles(support, genes)
+        missing = [alias for alias, key in zip(variant_refs, variants) if key not in anchored]
+        if missing:
+            offered = {
+                entry["source_ref"]: entry["passage_refs"]
+                for entry in prepared.get("wire_packet", {}).get("available_sources", ())
+            }
+            options = {
+                alias: [
+                    {
+                        "source_ref": name,
+                        "kind": source.kind,
+                        "provider": source.provider,
+                        "passage_refs": offered[name],
+                    }
+                    for name, source in prepared["source_by_alias"].items()
+                    if name in offered
+                    and prepared["variant_by_alias"][alias] in bound_alleles((source,), genes)
+                    and (row["polarity"] != "support" or source.kind in _MEDICAL)
+                ]
+                for alias in missing
+            }
+            if row["polarity"] != "support":
+                for alias, candidates in options.items():
+                    identity = [
+                        item
+                        for item in candidates
+                        if item["kind"] in {"patient_observation", "tool_observation", "annotation"}
+                    ]
+                    options[alias] = identity or candidates
+            claim_errors.append(
+                MendelPrimeError(
+                    f"report_claim_selection_invalid:allele_source_required;claim=C{number:03d}",
+                    category="response",
+                    field=f"claims[{number}]",
+                    source={
+                        "claim": row,
+                        "missing_variant_refs": missing,
+                        "identity_source_options": options,
+                        "instruction": "Repair only the identified binding; preserve every other already-valid source/passage pair. Choose a listed passage of its own identity source that actually establishes the claimed identity, together with the paper. Patient/native identity observations are not pathogenicity evidence. Causal support still requires exact-allele medical evidence. If identity cannot be established, retain only genuinely supported gene-level context; never add an unrelated citation to satisfy the check.",
+                    },
+                )
+            )
+        if claim_errors:
+            binding_errors.extend(claim_errors)
+            continue
         claim = {
             "case_key": context["case_key"],
             "claim_id": f"C{number:03d}",
@@ -1338,6 +1395,17 @@ def _decode_claims(raw, context, memory, prepared, *, coverage=True):
         except MendelPrimeError as error:
             raise MendelPrimeError("report_claim_scope_invalid", category="response") from error
         claims.append(claim)
+    if binding_errors:
+        first = binding_errors[0]
+        if len(binding_errors) > 1:
+            first.source = {
+                **first.source,
+                "additional_binding_errors": [
+                    {"error": error.code, "location": error.field, **error.source}
+                    for error in binding_errors[1:]
+                ],
+            }
+        raise first
     selected = tuple(claims)
     if not selected and not coverage:
         return ()
