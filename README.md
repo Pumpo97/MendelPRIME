@@ -8,8 +8,7 @@ HPO terms with genomic variants.
 
 In the cohorts evaluated in our study, MendelPRIME achieved state-of-the-art
 causal-gene prioritization performance among the compared methods in both
-phenotype-driven and joint phenotype-variant evaluations. It produces stage-level
-and final gene rankings. Optional traceable
+phenotype-driven and joint phenotype-variant evaluations. Optional traceable
 reports summarize the case, explain supporting and conflicting evidence, and
 compare leading candidates with references to databases and literature. For VCF
 inputs, reports also include variant-level ACMG interpretation. Case and Cohort
